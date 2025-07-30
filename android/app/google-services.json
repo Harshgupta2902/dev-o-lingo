@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "350194043113",
+    "project_id": "lingolearn-d228a",
+    "storage_bucket": "lingolearn-d228a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:350194043113:android:d506e597c8ad4ed15b4878",
+        "android_client_info": {
+          "package_name": "com.lingo.learn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "350194043113-oqcp1hqtg2hqk3tdi6ccjq4r1qv0foiq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lingo.learn",
+            "certificate_hash": "d95b02c990ceaedca61f0c25db5277cf9d74258e"
+          }
+        },
+        {
+          "client_id": "350194043113-jcq5atgddfq0tv90fncn11qlc4o8lc3c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAu3tlWvw0CMf_of22qICoO-UAX6EWJtyA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "350194043113-jcq5atgddfq0tv90fncn11qlc4o8lc3c.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

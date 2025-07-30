@@ -1,0 +1,8 @@
+class GoPaths {
+  // ------------------      Home Routes      ---------------------------
+
+  static const String login = '/login';
+  static const String onBoardingView = '/OnBoardingView';
+
+  static const String dashboardView = '/DashboardView';
+}
