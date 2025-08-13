@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/auth_module/components/polygon_text.dart';
+import 'package:lingolearn/auth_module/controller/auth_controller.dart';
 import 'package:lingolearn/auth_module/controller/onboarding_controller.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
@@ -11,6 +12,8 @@ import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/utilities/theme/core_box_shadow.dart';
 
 final onBoardingController = Get.put(OnboardingController());
+
+final authController = Get.put(AuthController());
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -112,7 +115,10 @@ class _LoginViewState extends State<LoginView> {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () {},
+            onPressed: () async {
+              await authController.googleSignIn();
+              MyNavigator.pushNamed(GoPaths.dashboardView);
+            },
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF6C4AFF),
               padding: const EdgeInsets.symmetric(horizontal: 16),
