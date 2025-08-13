@@ -1,16 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:lingolearn/utilities/enums.dart';
 
+import 'package:lingolearn/utilities/enums.dart';
+
 class LessonData {
   final int id;
   final String title;
   final String description;
   final LessonType type;
-  final bool isCompleted;
-  final bool isCurrent;
 
-  LessonData(this.id, this.title, this.description, this.type, this.isCompleted,
-      this.isCurrent);
+  bool isCompleted;
+  bool isCurrent;
+
+  LessonData(
+    this.id,
+    this.title,
+    this.description,
+    this.type,
+    this.isCompleted,
+    this.isCurrent,
+  );
+
+  LessonData copyWith({
+    int? id,
+    String? title,
+    String? description,
+    LessonType? type,
+    bool? isCompleted,
+    bool? isCurrent,
+  }) {
+    return LessonData(
+      id ?? this.id,
+      title ?? this.title,
+      description ?? this.description,
+      type ?? this.type,
+      isCompleted ?? this.isCompleted,
+      isCurrent ?? this.isCurrent,
+    );
+  }
 }
 
 class UnitData {
@@ -18,7 +45,7 @@ class UnitData {
   final String title;
   final String description;
   final Color color;
-  final int startIndex; // Index of the first lesson in this unit (0-based)
+  final int startIndex;
   final int lessonCount;
 
   UnitData(this.id, this.title, this.description, this.color, this.startIndex,
@@ -26,9 +53,15 @@ class UnitData {
 }
 
 class PathItem {
-  final String type; // 'lesson' or 'unit'
-  final dynamic data; // LessonData or UnitData
-  final int pathIndex; // Overall index in the combined path
+  final String type;
+  final dynamic data;
+  final int pathIndex;
+  final int? unitIndex;
 
-  PathItem({required this.type, required this.data, required this.pathIndex});
+  PathItem({
+    required this.type,
+    required this.data,
+    required this.pathIndex,
+    this.unitIndex,
+  });
 }

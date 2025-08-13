@@ -1,38 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class OnboardingController extends GetxController {
-  String? learningLanguage;
-  String? discoverySource;
-  String? proficiency;
-  String? motivation;
-  String? studyTarget;
+  RxList<Map<String, dynamic>> questions = <Map<String, dynamic>>[].obs;
+  RxBool isLoading = true.obs;
+  final Map<String, String> answers = {};
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   void setAnswer(String key, String value) {
-    debugPrint("✅ setAnswer called: $key = $value");
-    switch (key) {
-      case 'learningLanguage':
-        learningLanguage = value;
-        break;
-      case 'discoverySource':
-        discoverySource = value;
-        break;
-      case 'proficiency':
-        proficiency = value;
-        break;
-      case 'motivation':
-        motivation = value;
-        break;
-      case 'studyTarget':
-        studyTarget = value;
-        break;
+    answers[key] = value;
+  }
+
+  Future<void> fetchQuestions() async {
+    try {
+      isLoading(true);
+      final doc = await _db.collection('onboarding').doc('questions').get();
+      if (doc.exists) {
+        final data = doc.data();
+        final fetchedQuestions =
+            List<Map<String, dynamic>>.from(data?['questions'] ?? []);
+        questions.assignAll(fetchedQuestions);
+      }
+    } catch (e) {
+      debugPrint('Error fetching onboarding questions: $e');
+    } finally {
+      isLoading(false);
     }
   }
 
-  // Enhanced method to get all data as Map for Firebase
   Future<Map<String, dynamic>> getAllOnboardingData() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String buildNumber = packageInfo.buildNumber;
@@ -40,13 +37,7 @@ class OnboardingController extends GetxController {
     String version = packageInfo.version;
 
     return {
-      'questionnaire': {
-        'learningLanguage': learningLanguage,
-        'discoverySource': discoverySource,
-        'proficiency': proficiency,
-        'motivation': motivation,
-        'studyTarget': studyTarget,
-      },
+      'questionnaire': {...answers},
       'metadata': {
         'completedAt': FieldValue.serverTimestamp(),
         'buildNo': buildNumber,
@@ -56,13 +47,7 @@ class OnboardingController extends GetxController {
     };
   }
 
-  // Method to reset all data (useful for testing)
   void resetAllData() {
-    learningLanguage = null;
-    discoverySource = null;
-    proficiency = null;
-    motivation = null;
-    studyTarget = null;
-    debugPrint("🔄 All onboarding data has been reset");
+    answers.clear();
   }
 }

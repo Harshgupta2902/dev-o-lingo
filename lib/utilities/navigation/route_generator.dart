@@ -11,7 +11,7 @@ final GlobalKey<NavigatorState> rootNavigatorKey =
 final GlobalKey<NavigatorState> shellNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'shell');
 final GoRouter goRouterConfig = GoRouter(
-  initialLocation: isLoggedIn() ? GoPaths.dashboardView : GoPaths.login,
+  initialLocation: GoPaths.dashboardView,
   navigatorKey: rootNavigatorKey,
   routes: [
     //

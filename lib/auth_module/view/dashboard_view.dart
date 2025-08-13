@@ -1,11 +1,42 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/enums.dart';
+import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
+
+const List<Color> unitColors = [
+  Color(0xFFA568CC),
+  Color(0xFFFF981F),
+  Color(0xFF543ACC)
+];
+
+final Map<Color, Map<String, String>> unitColorAssetMap = {
+  Color(0xFFA568CC): {
+    'normal': AssetPath.purpleSvg,
+    'starred': AssetPath.purpleStarredSvg,
+    'inactive': AssetPath.inactiveSvg,
+    'inactive_starred': AssetPath.inactiveStarredSvg,
+  },
+  Color(0xFFFF981F): {
+    'normal': AssetPath.yellowSvg,
+    'starred': AssetPath.yellowStarredSvg,
+    'inactive': AssetPath.inactiveSvg,
+    'inactive_starred': AssetPath.inactiveStarredSvg,
+  },
+  Color(0xFF543ACC): {
+    'normal': AssetPath.blueSvg,
+    'starred': AssetPath.blueStarredSvg,
+    'inactive': AssetPath.inactiveSvg,
+    'inactive_starred': AssetPath.inactiveStarredSvg,
+  },
+};
 
 class LessonPathScreen extends StatefulWidget {
   const LessonPathScreen({super.key});
@@ -23,62 +54,18 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   late Animation<double> _floatAnimation;
   late AnimationController _pulseController;
 
-  final List<LessonData> allLessons = List.generate(
-    30,
-    (index) => LessonData(
-      index + 1,
-      "Lesson ${index + 1}",
-      "Learn new concepts and practice",
-      (index + 1) % 5 == 0 ? LessonType.bonus : LessonType.normal,
-      index < 2,
-      index == 2,
-    ),
-  );
-
-  final List<UnitData> units = [
-    UnitData(
-        1, "Unit 1", "Learning basic objects", const Color(0xFFE57373), 0, 7),
-    UnitData(
-        2, "Unit 2", "Family and relationships", const Color(0xFF4CAF50), 7, 7),
-    UnitData(3, "Unit 3", "Food and cooking", const Color(0xFF42A5F5), 14, 7),
-    UnitData(4, "Unit 4", "Travel and places", const Color(0xFFAB47BC), 21, 7),
-  ];
-
+  List<LessonData> allLessons = [];
+  List<UnitData> units = [];
   final List<PathItem> pathItems = [];
-
-// Function to build the interleaved path items
-  void _buildPathItems() {
-    pathItems.clear();
-    int currentLessonIndex = 0;
-    int pathItemIndex = 0;
-
-    for (var unit in units) {
-      pathItems
-          .add(PathItem(type: 'unit', data: unit, pathIndex: pathItemIndex++));
-      for (int i = 0; i < unit.lessonCount; i++) {
-        if (currentLessonIndex < allLessons.length) {
-          pathItems.add(PathItem(
-              type: 'lesson',
-              data: allLessons[currentLessonIndex],
-              pathIndex: pathItemIndex++));
-          currentLessonIndex++;
-        }
-      }
-    }
-    // Add any remaining lessons not covered by units (if any)
-    while (currentLessonIndex < allLessons.length) {
-      pathItems.add(PathItem(
-          type: 'lesson',
-          data: allLessons[currentLessonIndex],
-          pathIndex: pathItemIndex++));
-      currentLessonIndex++;
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    _buildPathItems();
+    _initAnimations();
+    _loadDataFromFirestore();
+  }
+
+  void _initAnimations() {
     _bounceController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -91,6 +78,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
+
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.1,
@@ -101,10 +89,10 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
     _bounceAnimation = Tween<double>(
       begin: 0.0,
-      end: -12.0, // Bounce upwards
+      end: -12.0,
     ).animate(CurvedAnimation(
       parent: _bounceController,
-      curve: Curves.elasticOut, // Approximating elasticInOut for bounce
+      curve: Curves.elasticOut,
     ));
 
     _floatAnimation = Tween<double>(
@@ -119,6 +107,140 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     _floatController.repeat(reverse: true);
   }
 
+  Future<void> _loadDataFromFirestore() async {
+    final firestore = FirebaseFirestore.instance;
+    final userId = await getUuid();
+
+    final unitSnap = await firestore
+        .collection('languages')
+        .doc('flutter')
+        .collection('units')
+        .orderBy('order')
+        .get();
+
+    units = unitSnap.docs.asMap().entries.map((entry) {
+      final index = entry.key;
+      final doc = entry.value;
+      final data = doc.data();
+      return UnitData(
+        data['order'],
+        data['title'],
+        data['description'],
+        unitColors[index % unitColors.length], // ✅ Use index instead
+        0,
+        (data['lessons'] as List).length,
+      );
+    }).toList();
+
+    final allLessonIds = units
+        .expand((u) => unitSnap.docs
+            .firstWhere((e) => e.data()['title'] == u.title)
+            .data()['lessons'] as List)
+        .cast<String>()
+        .toList();
+
+    final lessonChunks = <List<String>>[];
+    for (var i = 0; i < allLessonIds.length; i += 10) {
+      lessonChunks.add(allLessonIds.sublist(
+          i, i + 10 > allLessonIds.length ? allLessonIds.length : i + 10));
+    }
+
+    List<LessonData> fetchedLessons = [];
+    for (final chunk in lessonChunks) {
+      final snap = await firestore
+          .collection('chapters')
+          .where(FieldPath.documentId, whereIn: chunk)
+          .get();
+      fetchedLessons.addAll(snap.docs.map((doc) {
+        final data = doc.data();
+        return LessonData(
+          data['id'] != null
+              ? int.tryParse(data['id']
+                      .toString()
+                      .replaceAll(RegExp(r'[^0-9]'), '')) ??
+                  0
+              : 0,
+          data['title'],
+          '',
+          data['isBonus'] == true ? LessonType.bonus : LessonType.normal,
+          false,
+          false,
+        );
+      }));
+    }
+
+    if (userId != null) {
+      final progressSnap = await firestore
+          .collection('user_progress')
+          .doc(userId)
+          .collection('progress')
+          .doc('flutter_progress')
+          .get();
+
+      final lastCompletedId = progressSnap.data()?['lastCompletedLessonId'];
+      print("progress $lastCompletedId");
+
+      bool unlocked = true;
+      for (var lesson in fetchedLessons) {
+        if ('lesson_${lesson.id.toString()}' == lastCompletedId) {
+          lesson.isCompleted = true;
+          lesson.isCurrent = true;
+          unlocked = false;
+        } else if (unlocked) {
+          lesson.isCompleted = true;
+        } else {
+          lesson.isCompleted = false;
+          lesson.isCurrent = false;
+        }
+      }
+    }
+
+    setState(() {
+      allLessons = fetchedLessons;
+      _buildPathItems();
+    });
+  }
+
+  void _buildPathItems() {
+    pathItems.clear();
+    int currentLessonIndex = 0;
+    int pathItemIndex = 0;
+    int unitCounter = 1;
+
+    for (var unit in units) {
+      pathItems.add(PathItem(
+        type: 'unit',
+        data: unit,
+        pathIndex: pathItemIndex++,
+        unitIndex: unitCounter,
+      ));
+
+      for (int i = 0; i < unit.lessonCount; i++) {
+        if (currentLessonIndex < allLessons.length) {
+          pathItems.add(PathItem(
+            type: 'lesson',
+            data: allLessons[currentLessonIndex],
+            pathIndex: pathItemIndex++,
+            unitIndex: unitCounter,
+          ));
+          currentLessonIndex++;
+        }
+      }
+      unitCounter++;
+    }
+
+    while (currentLessonIndex < allLessons.length) {
+      pathItems.add(
+        PathItem(
+          type: 'lesson',
+          data: allLessons[currentLessonIndex],
+          pathIndex: pathItemIndex++,
+        ),
+      );
+      currentLessonIndex++;
+    }
+  }
+
   @override
   void dispose() {
     _bounceController.dispose();
@@ -128,37 +250,39 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: DuolingoLessonPathView(
-              pathItems: pathItems,
-              allLessons: allLessons,
-              bounceAnimation: _bounceAnimation,
-              floatAnimation: _floatAnimation,
-              pulseAnimation: _pulseAnimation,
-              units: units,
+      body: allLessons.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: DuolingoLessonPathView(
+                    pathItems: pathItems,
+                    allLessons: allLessons,
+                    bounceAnimation: _bounceAnimation,
+                    floatAnimation: _floatAnimation,
+                    pulseAnimation: _pulseAnimation,
+                    units: units,
+                  ),
+                ),
+                _buildBottomNavigation(),
+              ],
             ),
-          ),
-          _buildBottomNavigation(),
-        ],
-      ),
     );
   }
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF6C63FF), Color(0xFF5A52E8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -174,7 +298,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
             ),
             child: const Icon(
               Icons.person,
-              color: Colors.white,
               size: 24,
             ),
           ),
@@ -184,27 +307,19 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   }
 
   Widget _buildStatItem(IconData icon, String value, Color iconColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: iconColor, size: 20),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: iconColor, size: 20),
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -387,7 +502,11 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
       } else {
         final lessonData = item.data as LessonData;
         final translateX = 80 * math.sin((item.pathIndex * 120) / 100);
-
+        final unitNumber = item.unitIndex ?? 0;
+        final unitColor = widget.pathItems[item.pathIndex].unitIndex != null
+            ? widget
+                .units[widget.pathItems[item.pathIndex].unitIndex! - 1].color
+            : unitColors[0];
         slivers.add(SliverToBoxAdapter(
           key: _lessonKeys[item.pathIndex],
           child: Padding(
@@ -396,14 +515,15 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
               offset: Offset(translateX, 0),
               child: Center(
                 child: ModernLevelButton(
-                  lessonNumber: lessonData.id,
-                  isCompleted: lessonData.isCompleted,
-                  isCurrent: lessonData.isCurrent,
-                  isBonus: lessonData.type == LessonType.bonus,
-                  bounceAnimation: widget.bounceAnimation,
-                  floatAnimation: widget.floatAnimation,
-                  pulseAnimation: widget.pulseAnimation,
-                ),
+                    lessonNumber: lessonData.id,
+                    unitNumber: unitNumber,
+                    isCompleted: lessonData.isCompleted,
+                    isCurrent: lessonData.isCurrent,
+                    isBonus: lessonData.type == LessonType.bonus,
+                    bounceAnimation: widget.bounceAnimation,
+                    floatAnimation: widget.floatAnimation,
+                    pulseAnimation: widget.pulseAnimation,
+                    unitColor: unitColor),
               ),
             ),
           ),
@@ -412,7 +532,7 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         bool isLastInUnit = false;
         for (var unit in widget.units) {
           int unitLastIndex = unit.startIndex + unit.lessonCount - 1;
-          if (lessonData.id - 1 == unitLastIndex) {
+          if (lessonData.id == unitLastIndex) {
             isLastInUnit = true;
             break;
           }
@@ -423,21 +543,35 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 24),
               child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    '🎉 Chapter Ended!',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Expanded(
+                      child: Divider(
+                        color: Colors.grey,
+                        thickness: 1.2,
+                        indent: 16,
+                        endIndent: 8,
+                      ),
                     ),
-                  ),
+                    Text(
+                      'CHAPTER ENDED',
+                      style: TextStyle(
+                        color: Colors.grey[800],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const Expanded(
+                      child: Divider(
+                        color: Colors.grey,
+                        thickness: 1.2,
+                        indent: 8,
+                        endIndent: 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -464,17 +598,17 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  double get maxExtent => 100.0;
+  double get maxExtent => 86.0;
 
   @override
-  double get minExtent => 100.0;
+  double get minExtent => 86.0;
 
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       alignment: Alignment.centerLeft,
       decoration: AppBoxDecoration.getBoxDecoration(
         color: unitColor,
@@ -505,9 +639,11 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold)),
-                Text(description,
-                    style: TextStyle(
-                        color: Colors.white.withOpacity(0.8), fontSize: 14)),
+                Text(
+                  description,
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.8), fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -533,16 +669,20 @@ class ModernLevelButton extends StatefulWidget {
   final Animation<double> bounceAnimation;
   final Animation<double> floatAnimation;
   final Animation<double> pulseAnimation;
+  final int unitNumber;
+  final Color unitColor;
 
   const ModernLevelButton({
     super.key,
     required this.lessonNumber,
     required this.isCompleted,
     required this.isCurrent,
+    required this.unitNumber,
     required this.isBonus,
     required this.bounceAnimation,
     required this.floatAnimation,
     required this.pulseAnimation,
+    required this.unitColor,
   });
 
   @override
@@ -595,28 +735,6 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
 
   @override
   Widget build(BuildContext context) {
-    Color buttonColor;
-    Color textColor;
-    IconData? icon;
-
-    if (widget.isCompleted) {
-      buttonColor = const Color(0xFF10B981);
-      textColor = Colors.white;
-      icon = Icons.check_rounded;
-    } else if (widget.isCurrent) {
-      buttonColor = const Color(0xFF667EEA);
-      textColor = Colors.white;
-    } else {
-      buttonColor = const Color(0xFFE5E7EB);
-      textColor = const Color(0xFF6B7280);
-    }
-
-    if (widget.isBonus) {
-      buttonColor = const Color(0xFFF59E0B);
-      textColor = Colors.white;
-      icon = Icons.star_rounded;
-    }
-
     return AnimatedBuilder(
       animation: Listenable.merge([
         widget.bounceAnimation,
@@ -650,46 +768,28 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
                   alignment: Alignment.center,
                   clipBehavior: Clip.none,
                   children: [
+                    SvgPicture.asset(
+                      widget.isBonus
+                          ? AssetPath.bonusSvg
+                          : (widget.isCurrent
+                              ? (unitColorAssetMap[widget.unitColor]
+                                      ?['starred'] ??
+                                  AssetPath.purpleStarredSvg)
+                              : (widget.isCompleted
+                                  ? (unitColorAssetMap[widget.unitColor]
+                                          ?['normal'] ??
+                                      AssetPath.purpleSvg)
+                                  : (unitColorAssetMap[widget.unitColor]
+                                          ?['inactive_starred'] ??
+                                      AssetPath.inactiveStarredSvg))),
+                    ),
                     if (widget.isCurrent)
                       Positioned(
-                        top: -50,
-                        child: Container(
-                          decoration: AppBoxDecoration.getBoxDecoration(
-                              color: Colors.white, borderRadius: 16),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 16),
-                          child: const Text(
-                            'START',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    SvgPicture.asset(AssetPath.buttonSvg),
-                    if (icon != null)
-                      Positioned(
-                        child: Icon(
-                          icon,
-                          color: textColor,
-                          size: 28,
-                        ),
-                      ),
-                    if (widget.isCompleted && !widget.isBonus)
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check_rounded,
-                            color: Color(0xFF10B981),
-                            size: 16,
+                        top: -20,
+                        child: Text(
+                          "START",
+                          style: Get.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

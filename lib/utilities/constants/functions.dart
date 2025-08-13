@@ -92,26 +92,6 @@ String getDrawerLogo(String title) {
   }
 }
 
-CallApiType getCallApiTypeFromPath(String path) {
-  switch (path) {
-    case "/mainSubs":
-      return CallApiType.mainSubs;
-    case "/smeSubs":
-      return CallApiType.smeSubs;
-    case "/performance":
-      return CallApiType.performance;
-    case "/mainCalendar":
-      return CallApiType.mainCalender;
-    case "/smeCalendar":
-      return CallApiType.smeCalender;
-    case "/mostSuccessIpo":
-      return CallApiType.successIpo;
-    case "/leastSuccessIpo":
-      return CallApiType.leaseIpo;
-    default:
-      return CallApiType.none;
-  }
-}
 
 
 class TextOnlyFormatter extends TextInputFormatter {
