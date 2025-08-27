@@ -65,6 +65,7 @@ class Units {
   Units({
     this.id,
     this.languageId,
+    this.sortOrder,
     this.name,
     this.externalId,
     this.lessonCount,
@@ -73,6 +74,7 @@ class Units {
   Units.fromJson(dynamic json) {
     id = json['id'];
     languageId = json['language_id'];
+    sortOrder = json['sort_order'];
     name = json['name'];
     externalId = json['external_id'];
     if (json['lessons'] != null) {
@@ -85,6 +87,7 @@ class Units {
   }
   num? id;
   num? languageId;
+  num? sortOrder;
   String? name;
   String? externalId;
   List<Lessons>? lessons;
@@ -94,6 +97,7 @@ class Units {
     final map = <String, dynamic>{};
     map['id'] = id;
     map['language_id'] = languageId;
+    map['sort_order'] = sortOrder;
     map['name'] = name;
     map['external_id'] = externalId;
     if (lessons != null) {

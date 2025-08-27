@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lingolearn/auth_module/view/dashboard_view.dart';
+import 'package:lingolearn/auth_module/home_module/view/dashboard_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
-import 'package:lingolearn/auth_module/view/questions_view.dart';
+import 'package:lingolearn/auth_module/home_module/view/exercises_view.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 

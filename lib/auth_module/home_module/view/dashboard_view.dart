@@ -7,7 +7,7 @@ import 'package:lingolearn/auth_module/home_module/models/get_home_language_mode
 import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
-import 'package:lingolearn/auth_module/view/questions_view.dart';
+import 'package:lingolearn/auth_module/home_module/view/exercises_view.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/enums.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
@@ -548,6 +548,7 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         pinned: true,
         delegate: _UnitHeaderDelegate(
           title: unitData.name ?? "",
+          unitId: unitData.sortOrder!,
           externalId: unitData.externalId ?? "",
           isActive: true,
           unitColor: unitColors[(unitIndex - 1) % unitColors.length],
@@ -657,22 +658,24 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
 
 class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String title;
+  final num unitId;
   final String externalId;
   final bool isActive;
   final Color unitColor;
 
   _UnitHeaderDelegate({
     required this.externalId,
+    required this.unitId,
     required this.title,
     required this.isActive,
     required this.unitColor,
   });
 
   @override
-  double get maxExtent => 74;
+  double get maxExtent => 86;
 
   @override
-  double get minExtent => 74;
+  double get minExtent => 86;
 
   @override
   Widget build(
@@ -705,13 +708,26 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Unit $unitId",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
