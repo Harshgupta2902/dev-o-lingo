@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lingolearn/auth_module/view/dashboard_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
+import 'package:lingolearn/auth_module/view/questions_view.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 
@@ -11,7 +12,7 @@ final GlobalKey<NavigatorState> rootNavigatorKey =
 final GlobalKey<NavigatorState> shellNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'shell');
 final GoRouter goRouterConfig = GoRouter(
-  initialLocation: GoPaths.dashboardView,
+  initialLocation: isLoggedIn() ? GoPaths.dashboardView : GoPaths.login,
   navigatorKey: rootNavigatorKey,
   routes: [
     //
@@ -82,6 +83,17 @@ final GoRouter goRouterConfig = GoRouter(
       name: GoPaths.dashboardView,
       builder: (context, state) {
         return const LessonPathScreen();
+      },
+    ),
+
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.exercisesView,
+      name: GoPaths.exercisesView,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final slug = extras['slug'];
+        return LessonDetailScreen(slug: slug);
       },
     ),
   ],

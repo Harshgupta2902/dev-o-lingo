@@ -4,21 +4,24 @@ import 'package:flutter/material.dart';
 import 'api_client.dart';
 
 Future<Response> getRequest({required String apiEndPoint}) async {
+  Dio client = NewClient().init();
+  debugPrint("🌐 GET → $apiEndPoint [START]");
+
   try {
-    Dio client = NewClient().init();
-
-    debugPrint("^^^^^^^^^^^^^^^^^^ $apiEndPoint getRequest Start ^^^^^^^^^^^^^^^^^^");
-
     final response = await client.get(apiEndPoint);
-
-    debugPrint("^^^^^^^^^^^^^^^^^^ $apiEndPoint getRequest End ^^^^^^^^^^^^^^^^^^");
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load data: ${response.statusCode}');
-    }
-
+    debugPrint("✅ GET ← $apiEndPoint [END] "
+        "Status: ${response.statusCode}");
     return response;
+  } on DioException catch (e) {
+    if (e.response != null) {
+      debugPrint("❌ GET ERROR ${e.response?.statusCode} @ $apiEndPoint");
+      debugPrint("   ↳ Response: ${e.response?.data}");
+    } else {
+      debugPrint("❌ GET ERROR @ $apiEndPoint → ${e.message}");
+    }
+    rethrow;
   } catch (e) {
+    debugPrint("❌ GET Unexpected error @ $apiEndPoint → $e");
     rethrow;
   }
 }
@@ -26,20 +29,26 @@ Future<Response> getRequest({required String apiEndPoint}) async {
 Future<Response> postRequest({
   required String apiEndPoint,
   required Map<String, dynamic> postData,
-  FormData? formData,
 }) async {
   Dio client = NewClient().init();
-  debugPrint("~~~~~~~~~~~~~~~~~~~~ $apiEndPoint postRequest Start ~~~~~~~~~~~~~~~~~~~~ ");
+  debugPrint("🌐 POST → $apiEndPoint [START]");
+  debugPrint("   ↳ Payload: $postData");
 
-  debugPrint(
-      "~~~~~~~~~~~~~~~~~~~~ $apiEndPoint postRequest postData $postData ~~~~~~~~~~~~~~~~~~~~ ");
-
-  final response = await client.post(apiEndPoint, data: formData, queryParameters: postData);
-
-  debugPrint("~~~~~~~~~~~~~~~~~~~~ $apiEndPoint postRequest End ~~~~~~~~~~~~~~~~~~~~ ");
-  if (response.statusCode != 200) {
-    throw Exception('Failed to load data: ${response.statusCode}');
+  try {
+    final response = await client.post(apiEndPoint, data: postData);
+    debugPrint("✅ POST ← $apiEndPoint [END] "
+        "Status: ${response.statusCode}");
+    return response;
+  } on DioException catch (e) {
+    if (e.response != null) {
+      debugPrint("❌ POST ERROR ${e.response?.statusCode} @ $apiEndPoint");
+      debugPrint("   ↳ Response: ${e.response?.data}");
+    } else {
+      debugPrint("❌ POST ERROR @ $apiEndPoint → ${e.message}");
+    }
+    rethrow;
+  } catch (e) {
+    debugPrint("❌ POST Unexpected error @ $apiEndPoint → $e");
+    rethrow;
   }
-
-  return response;
 }

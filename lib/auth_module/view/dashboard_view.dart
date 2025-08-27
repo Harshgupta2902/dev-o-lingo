@@ -1,15 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:lingolearn/auth_module/home_module/controller/language_controller.dart';
+import 'package:lingolearn/auth_module/home_module/models/get_home_language_model.dart';
 import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
+import 'package:lingolearn/auth_module/view/login_view.dart';
+import 'package:lingolearn/auth_module/view/questions_view.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/enums.dart';
-import 'package:lingolearn/utilities/firebase/core_prefs.dart';
+import 'package:lingolearn/utilities/navigation/go_paths.dart';
+import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
+
+final languageController = Get.put(LanguageController());
 
 const List<Color> unitColors = [
   Color(0xFFA568CC),
@@ -54,15 +59,64 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   late Animation<double> _floatAnimation;
   late AnimationController _pulseController;
 
-  List<LessonData> allLessons = [];
-  List<UnitData> units = [];
+  List<Lessons> allLessons = [];
+  List<Units> units = [];
   final List<PathItem> pathItems = [];
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
-    _loadDataFromFirestore();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        await languageController.getLanguageData();
+
+        if (languageController.state != null) {
+          _mapApiData(languageController.state!);
+        }
+      },
+    );
+  }
+
+  List<Units> mapUnits(List<Units> apiUnits) {
+    return apiUnits.asMap().entries.map((entry) {
+      final u = entry.value;
+      return Units(
+        id: u.id,
+        languageId: u.languageId ?? 0,
+        name: u.name,
+        externalId: u.externalId,
+        lessonCount: u.lessonCount?.toInt() ?? 0,
+      );
+    }).toList();
+  }
+
+  List<Lessons> mapLessons(List<Units> apiUnits) {
+    return apiUnits.expand((u) {
+      return u.lessons?.map((l) {
+            return Lessons(
+              id: l.id,
+              unitId: l.unitId ?? 0,
+              name: l.name ?? "",
+              externalId: l.externalId,
+            );
+          }).toList() ??
+          <Lessons>[];
+    }).toList();
+  }
+
+  void _mapApiData(GetHomeLanguageModel model) {
+    final unitsFromApi = model.data?.units ?? [];
+
+    // ✅ Directly assign new Units model
+    units = unitsFromApi;
+
+    allLessons =
+        unitsFromApi.expand((unit) => unit.lessons ?? <Lessons>[]).toList();
+
+    setState(() {
+      _buildPathItems();
+    });
   }
 
   void _initAnimations() {
@@ -107,99 +161,98 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     _floatController.repeat(reverse: true);
   }
 
-  Future<void> _loadDataFromFirestore() async {
-    final firestore = FirebaseFirestore.instance;
-    final userId = await getUuid();
-
-    final unitSnap = await firestore
-        .collection('languages')
-        .doc('flutter')
-        .collection('units')
-        .orderBy('order')
-        .get();
-
-    units = unitSnap.docs.asMap().entries.map((entry) {
-      final index = entry.key;
-      final doc = entry.value;
-      final data = doc.data();
-      return UnitData(
-        data['order'],
-        data['title'],
-        data['description'],
-        unitColors[index % unitColors.length], // ✅ Use index instead
-        0,
-        (data['lessons'] as List).length,
-      );
-    }).toList();
-
-    final allLessonIds = units
-        .expand((u) => unitSnap.docs
-            .firstWhere((e) => e.data()['title'] == u.title)
-            .data()['lessons'] as List)
-        .cast<String>()
-        .toList();
-
-    final lessonChunks = <List<String>>[];
-    for (var i = 0; i < allLessonIds.length; i += 10) {
-      lessonChunks.add(allLessonIds.sublist(
-          i, i + 10 > allLessonIds.length ? allLessonIds.length : i + 10));
-    }
-
-    List<LessonData> fetchedLessons = [];
-    for (final chunk in lessonChunks) {
-      final snap = await firestore
-          .collection('chapters')
-          .where(FieldPath.documentId, whereIn: chunk)
-          .get();
-      fetchedLessons.addAll(snap.docs.map((doc) {
-        final data = doc.data();
-        return LessonData(
-          data['id'] != null
-              ? int.tryParse(data['id']
-                      .toString()
-                      .replaceAll(RegExp(r'[^0-9]'), '')) ??
-                  0
-              : 0,
-          data['title'],
-          '',
-          data['isBonus'] == true ? LessonType.bonus : LessonType.normal,
-          false,
-          false,
-        );
-      }));
-    }
-
-    if (userId != null) {
-      final progressSnap = await firestore
-          .collection('user_progress')
-          .doc(userId)
-          .collection('progress')
-          .doc('flutter_progress')
-          .get();
-
-      final lastCompletedId = progressSnap.data()?['lastCompletedLessonId'];
-      print("progress $lastCompletedId");
-
-      bool unlocked = true;
-      for (var lesson in fetchedLessons) {
-        if ('lesson_${lesson.id.toString()}' == lastCompletedId) {
-          lesson.isCompleted = true;
-          lesson.isCurrent = true;
-          unlocked = false;
-        } else if (unlocked) {
-          lesson.isCompleted = true;
-        } else {
-          lesson.isCompleted = false;
-          lesson.isCurrent = false;
-        }
-      }
-    }
-
-    setState(() {
-      allLessons = fetchedLessons;
-      _buildPathItems();
-    });
-  }
+  // Future<void> _loadDataFromFirestore() async {
+  //   final firestore = FirebaseFirestore.instance;
+  //   final userId = await getUuid();
+  //
+  //   final unitSnap = await firestore
+  //       .collection('languages')
+  //       .doc('flutter')
+  //       .collection('units')
+  //       .orderBy('order')
+  //       .get();
+  //
+  //   units = unitSnap.docs.asMap().entries.map((entry) {
+  //     final index = entry.key;
+  //     final doc = entry.value;
+  //     final data = doc.data();
+  //     return UnitData(
+  //       data['order'],
+  //       data['title'],
+  //       data['description'],
+  //       unitColors[index % unitColors.length], // ✅ Use index instead
+  //       0,
+  //       (data['lessons'] as List).length,
+  //     );
+  //   }).toList();
+  //
+  //   final allLessonIds = units
+  //       .expand((u) => unitSnap.docs
+  //           .firstWhere((e) => e.data()['title'] == u.title)
+  //           .data()['lessons'] as List)
+  //       .cast<String>()
+  //       .toList();
+  //
+  //   final lessonChunks = <List<String>>[];
+  //   for (var i = 0; i < allLessonIds.length; i += 10) {
+  //     lessonChunks.add(allLessonIds.sublist(
+  //         i, i + 10 > allLessonIds.length ? allLessonIds.length : i + 10));
+  //   }
+  //
+  //   List<LessonData> fetchedLessons = [];
+  //   for (final chunk in lessonChunks) {
+  //     final snap = await firestore
+  //         .collection('chapters')
+  //         .where(FieldPath.documentId, whereIn: chunk)
+  //         .get();
+  //     fetchedLessons.addAll(snap.docs.map((doc) {
+  //       final data = doc.data();
+  //       return LessonData(
+  //         data['id'] != null
+  //             ? int.tryParse(data['id']
+  //                     .toString()
+  //                     .replaceAll(RegExp(r'[^0-9]'), '')) ??
+  //                 0
+  //             : 0,
+  //         data['title'],
+  //         '',
+  //         data['isBonus'] == true ? LessonType.bonus : LessonType.normal,
+  //         false,
+  //         false,
+  //       );
+  //     }));
+  //   }
+  //
+  //   if (userId != null) {
+  //     final progressSnap = await firestore
+  //         .collection('user_progress')
+  //         .doc(userId)
+  //         .collection('progress')
+  //         .doc('flutter_progress')
+  //         .get();
+  //
+  //     final lastCompletedId = progressSnap.data()?['lastCompletedLessonId'];
+  //
+  //     bool unlocked = true;
+  //     for (var lesson in fetchedLessons) {
+  //       if ('lesson_${lesson.id.toString()}' == lastCompletedId) {
+  //         lesson.isCompleted = true;
+  //         lesson.isCurrent = true;
+  //         unlocked = false;
+  //       } else if (unlocked) {
+  //         lesson.isCompleted = true;
+  //       } else {
+  //         lesson.isCompleted = false;
+  //         lesson.isCurrent = false;
+  //       }
+  //     }
+  //   }
+  //
+  //   setState(() {
+  //     allLessons = fetchedLessons;
+  //     _buildPathItems();
+  //   });
+  // }
 
   void _buildPathItems() {
     pathItems.clear();
@@ -215,7 +268,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
         unitIndex: unitCounter,
       ));
 
-      for (int i = 0; i < unit.lessonCount; i++) {
+      for (int i = 0; i < unit.lessonCount!; i++) {
         if (currentLessonIndex < allLessons.length) {
           pathItems.add(PathItem(
             type: 'lesson',
@@ -289,16 +342,19 @@ class _LessonPathScreenState extends State<LessonPathScreen>
           _buildStatItem(Icons.local_fire_department, "7", Colors.orange),
           _buildStatItem(Icons.diamond, "1,234", Colors.blue),
           _buildStatItem(Icons.favorite, "5", Colors.red),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.person,
-              size: 24,
+          GestureDetector(
+            onTap: () => authController.googleSignOut(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.person,
+                size: 24,
+              ),
             ),
           ),
         ],
@@ -373,8 +429,8 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
 class DuolingoLessonPathView extends StatefulWidget {
   final List<PathItem> pathItems;
-  final List<LessonData> allLessons;
-  final List<UnitData> units;
+  final List<Lessons> allLessons;
+  final List<Units> units;
   final Animation<double> bounceAnimation;
   final Animation<double> floatAnimation;
   final Animation<double> pulseAnimation;
@@ -408,26 +464,34 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
       _lessonKeys[item.pathIndex] = GlobalKey();
     }
 
+    // ✅ First unit ko default header ke liye set karo
+    final firstUnitIndex = widget.pathItems.indexWhere((p) => p.type == 'unit');
+    if (firstUnitIndex != -1) {
+      _currentUnitIndex = widget.pathItems[firstUnitIndex].pathIndex;
+    }
+
+    // Baaki tumhara post-frame ensureVisible code rehne do
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentLessonPathItem = widget.pathItems.firstWhere(
-        (item) => item.type == 'lesson' && (item.data as LessonData).isCurrent,
-        orElse: () =>
-            PathItem(type: 'lesson', data: widget.allLessons[0], pathIndex: 0),
+      final firstLesson = widget.pathItems.firstWhere(
+        (item) => item.type == 'lesson',
+        orElse: () => widget.pathItems[firstUnitIndex],
       );
 
-      for (int i = currentLessonPathItem.pathIndex; i >= 0; i--) {
+      for (int i = firstLesson.pathIndex; i >= 0; i--) {
         if (widget.pathItems[i].type == 'unit') {
-          setState(() {
-            _currentUnitIndex = widget.pathItems[i].pathIndex;
-          });
+          if (_currentUnitIndex != widget.pathItems[i].pathIndex) {
+            setState(() {
+              _currentUnitIndex = widget.pathItems[i].pathIndex;
+            });
+          }
           break;
         }
       }
 
-      final key = _lessonKeys[currentLessonPathItem.pathIndex];
-      if (key != null && key.currentContext != null) {
+      final key = _lessonKeys[firstLesson.pathIndex];
+      if (key?.currentContext != null) {
         Scrollable.ensureVisible(
-          key.currentContext!,
+          key!.currentContext!,
           duration: const Duration(milliseconds: 800),
           curve: Curves.easeInOutCubic,
           alignment: 0.5,
@@ -475,15 +539,18 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
   List<Widget> _buildSliverLessonPath() {
     List<Widget> slivers = [];
 
-    if (_currentUnitIndex != null) {
-      final unitData = widget.pathItems[_currentUnitIndex!].data as UnitData;
+    if (_currentUnitIndex != null &&
+        _currentUnitIndex! < widget.pathItems.length &&
+        widget.pathItems[_currentUnitIndex!].type == 'unit') {
+      final unitData = widget.pathItems[_currentUnitIndex!].data as Units;
+      final unitIndex = widget.pathItems[_currentUnitIndex!].unitIndex ?? 1;
       slivers.add(SliverPersistentHeader(
         pinned: true,
         delegate: _UnitHeaderDelegate(
-          title: unitData.title,
-          description: unitData.description,
+          title: unitData.name ?? "",
+          externalId: unitData.externalId ?? "",
           isActive: true,
-          unitColor: unitData.color,
+          unitColor: unitColors[(unitIndex - 1) % unitColors.length],
         ),
       ));
     }
@@ -500,13 +567,23 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
           ),
         );
       } else {
-        final lessonData = item.data as LessonData;
+        final lessonData = item.data as Lessons;
+        final lessonNumber = item.unitIndex ?? 0;
         final translateX = 80 * math.sin((item.pathIndex * 120) / 100);
         final unitNumber = item.unitIndex ?? 0;
-        final unitColor = widget.pathItems[item.pathIndex].unitIndex != null
-            ? widget
-                .units[widget.pathItems[item.pathIndex].unitIndex! - 1].color
-            : unitColors[0];
+        final unitColor = unitColors[(unitNumber - 1) % unitColors.length];
+
+        final slug = lessonData.externalId;
+
+        bool isLastInUnit = false;
+        for (var unit in widget.units) {
+          int unitLastIndex = unit.lessons?.last.id ?? 0;
+          if (lessonData.id == unitLastIndex) {
+            isLastInUnit = true;
+            break;
+          }
+        }
+
         slivers.add(SliverToBoxAdapter(
           key: _lessonKeys[item.pathIndex],
           child: Padding(
@@ -515,28 +592,22 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
               offset: Offset(translateX, 0),
               child: Center(
                 child: ModernLevelButton(
-                    lessonNumber: lessonData.id,
-                    unitNumber: unitNumber,
-                    isCompleted: lessonData.isCompleted,
-                    isCurrent: lessonData.isCurrent,
-                    isBonus: lessonData.type == LessonType.bonus,
-                    bounceAnimation: widget.bounceAnimation,
-                    floatAnimation: widget.floatAnimation,
-                    pulseAnimation: widget.pulseAnimation,
-                    unitColor: unitColor),
+                  slug: slug ?? "",
+                  lessonNumber: lessonNumber,
+                  unitNumber: unitNumber,
+                  isCompleted: false,
+                  isCurrent: false,
+                  isBonus: true,
+                  isLastInUnit: isLastInUnit,
+                  bounceAnimation: widget.bounceAnimation,
+                  floatAnimation: widget.floatAnimation,
+                  pulseAnimation: widget.pulseAnimation,
+                  unitColor: unitColor,
+                ),
               ),
             ),
           ),
         ));
-
-        bool isLastInUnit = false;
-        for (var unit in widget.units) {
-          int unitLastIndex = unit.startIndex + unit.lessonCount - 1;
-          if (lessonData.id == unitLastIndex) {
-            isLastInUnit = true;
-            break;
-          }
-        }
 
         if (isLastInUnit) {
           slivers.add(SliverToBoxAdapter(
@@ -586,22 +657,22 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
 
 class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String title;
-  final String description;
+  final String externalId;
   final bool isActive;
   final Color unitColor;
 
   _UnitHeaderDelegate({
+    required this.externalId,
     required this.title,
-    required this.description,
     required this.isActive,
     required this.unitColor,
   });
 
   @override
-  double get maxExtent => 86.0;
+  double get maxExtent => 74;
 
   @override
-  double get minExtent => 86.0;
+  double get minExtent => 74;
 
   @override
   Widget build(
@@ -616,35 +687,31 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              isActive ? Icons.play_arrow : Icons.lock,
-              color: Colors.white,
-              size: 24,
+          GestureDetector(
+            onTap: () => print("external id $externalId"),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                isActive ? Icons.play_arrow : Icons.lock,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold)),
-                Text(
-                  description,
-                  style: TextStyle(
-                      color: Colors.white.withOpacity(0.8), fontSize: 14),
-                ),
-              ],
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -655,7 +722,6 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant _UnitHeaderDelegate oldDelegate) {
     return title != oldDelegate.title ||
-        description != oldDelegate.description ||
         isActive != oldDelegate.isActive ||
         unitColor != oldDelegate.unitColor;
   }
@@ -663,9 +729,11 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
 
 class ModernLevelButton extends StatefulWidget {
   final int lessonNumber;
+  final String slug;
   final bool isCompleted;
   final bool isCurrent;
   final bool isBonus;
+  final bool isLastInUnit;
   final Animation<double> bounceAnimation;
   final Animation<double> floatAnimation;
   final Animation<double> pulseAnimation;
@@ -679,10 +747,12 @@ class ModernLevelButton extends StatefulWidget {
     required this.isCurrent,
     required this.unitNumber,
     required this.isBonus,
+    required this.isLastInUnit,
     required this.bounceAnimation,
     required this.floatAnimation,
     required this.pulseAnimation,
     required this.unitColor,
+    required this.slug,
   });
 
   @override
@@ -716,21 +786,40 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
     super.dispose();
   }
 
-  void _handleTapDown(TapDownDetails details) {
-    _tapController.forward();
-  }
-
-  void _handleTapUp(TapUpDetails details) {
-    _tapController.reverse();
-  }
-
-  void _handleTapCancel() {
-    _tapController.reverse();
-  }
-
   void _handlePress() {
     HapticFeedback.mediumImpact();
-    debugPrint('Lesson ${widget.lessonNumber} clicked!');
+
+    if (widget.isCompleted && !widget.isCurrent) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Restart Lesson"),
+          content: const Text("Do you want to start again?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                _navigateToLesson();
+              },
+              child: const Text("Yes"),
+            ),
+          ],
+        ),
+      );
+    } else {
+      _navigateToLesson();
+    }
+  }
+
+  void _navigateToLesson() {
+    MyNavigator.pushNamed(
+      GoPaths.exercisesView,
+      extra: {'slug': widget.slug},
+    );
   }
 
   @override
@@ -757,9 +846,6 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
           child: Transform.scale(
             scale: scale,
             child: GestureDetector(
-              onTapDown: _handleTapDown,
-              onTapUp: _handleTapUp,
-              onTapCancel: _handleTapCancel,
               onTap: _handlePress,
               child: SizedBox(
                 width: 72,
@@ -769,19 +855,25 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
                   clipBehavior: Clip.none,
                   children: [
                     SvgPicture.asset(
-                      widget.isBonus
-                          ? AssetPath.bonusSvg
-                          : (widget.isCurrent
-                              ? (unitColorAssetMap[widget.unitColor]
-                                      ?['starred'] ??
-                                  AssetPath.purpleStarredSvg)
-                              : (widget.isCompleted
-                                  ? (unitColorAssetMap[widget.unitColor]
-                                          ?['normal'] ??
-                                      AssetPath.purpleSvg)
-                                  : (unitColorAssetMap[widget.unitColor]
-                                          ?['inactive_starred'] ??
-                                      AssetPath.inactiveStarredSvg))),
+                      widget.isLastInUnit
+                          ? (unitColorAssetMap[widget.unitColor]?['starred'] ??
+                              AssetPath.inactiveStarredSvg)
+                          : (unitColorAssetMap[widget.unitColor]?['normal'] ??
+                              AssetPath.inactiveStarredSvg),
+
+                      // widget.isBonus
+                      //     ? AssetPath.inactiveStarredSvg
+                      //     : (widget.isCurrent
+                      //         ? (unitColorAssetMap[widget.unitColor]
+                      //                 ?['starred'] ??
+                      //             AssetPath.purpleStarredSvg)
+                      //         : (widget.isCompleted
+                      //             ? (unitColorAssetMap[widget.unitColor]
+                      //                     ?['normal'] ??
+                      //                 AssetPath.purpleSvg)
+                      //             : (unitColorAssetMap[widget.unitColor]
+                      //                     ?['inactive'] ??
+                      //                 AssetPath.inactiveSvg))),
                     ),
                     if (widget.isCurrent)
                       Positioned(

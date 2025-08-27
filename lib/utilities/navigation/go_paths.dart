@@ -5,4 +5,5 @@ class GoPaths {
   static const String onBoardingView = '/OnBoardingView';
 
   static const String dashboardView = '/DashboardView';
+  static const String exercisesView = '/exercisesView';
 }

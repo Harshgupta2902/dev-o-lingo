@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -5,6 +7,8 @@ import 'package:get/get.dart';
 import 'package:lingolearn/auth_module/components/polygon_text.dart';
 import 'package:lingolearn/auth_module/controller/auth_controller.dart';
 import 'package:lingolearn/auth_module/controller/onboarding_controller.dart';
+import 'package:lingolearn/auth_module/models/onboarding_model.dart';
+import 'package:lingolearn/utilities/common/scaffold_messenger.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
@@ -34,6 +38,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
 
   @override
   void initState() {
+    onBoardingController.fetchQuestions();
     super.initState();
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
@@ -84,38 +89,39 @@ class _OnBoardingViewState extends State<OnBoardingView>
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (onBoardingController.isLoading.value) {
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
-      }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: onBoardingController.obx(
+        (onboardingModel) {
+          final questions = onboardingModel?.data ?? [];
 
-      final questions = onBoardingController.questions;
-
-      int totalMainQuestions = questions.length;
-
-      if (currentPage < totalMainQuestions) {
-        final q = questions[currentPage];
-        return _buildQuestionPage(
-          context,
-          onBoardingController,
-          q["question"],
-          List<Map<String, dynamic>>.from(q["options"]),
-          q["key"],
-        );
-      } else {
-        return _buildSuccessPage();
-      }
-    });
+          if (currentPage < questions.length) {
+            final q = questions[currentPage];
+            return _buildQuestionPage(
+              context,
+              onBoardingController,
+              q.question ?? "",
+              q.onboardingOptions ?? [],
+              q.qKey ?? "",
+            );
+          } else {
+            return _buildSuccessPage();
+          }
+        },
+        onLoading: const Center(child: CircularProgressIndicator()),
+        onError: (error) =>
+            Center(child: Text(error ?? "Something went wrong")),
+      ),
+    );
   }
 
   Widget _buildQuestionPage(
-      BuildContext context,
-      OnboardingController controller,
-      String title,
-      List<Map<String, dynamic>> options,
-      String key) {
+    BuildContext context,
+    OnboardingController controller,
+    String title,
+    List<OnboardingOptions> options,
+    String key,
+  ) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -216,7 +222,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     final option = options[index];
-                    final isSelected = selectedOption == option["name"];
+                    final isSelected = selectedOption == option.name;
                     return AnimatedContainer(
                       duration: Duration(milliseconds: 300 + (index * 100)),
                       curve: Curves.elasticOut,
@@ -230,7 +236,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                         onTap: () {
                           HapticFeedback.lightImpact();
                           setState(() {
-                            selectedOption = option["name"];
+                            selectedOption = option.name;
                           });
                         },
                         child: AnimatedContainer(
@@ -255,13 +261,13 @@ class _OnBoardingViewState extends State<OnBoardingView>
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: Color(int.parse(option["color"]))
+                                  color: Color(int.parse(option.color!))
                                       .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Center(
                                   child: Text(
-                                    option["flag"],
+                                    option.flag!,
                                     style: const TextStyle(fontSize: 24),
                                   ),
                                 ),
@@ -269,7 +275,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
-                                  option["name"],
+                                  option.name!,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -282,7 +288,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                                   width: 24,
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    color: Color(int.parse(option["color"])),
+                                    color: Color(int.parse(option.color!)),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
@@ -465,9 +471,16 @@ class _OnBoardingViewState extends State<OnBoardingView>
             ),
             child: ElevatedButton(
               onPressed: () async {
-                await authController.googleSignIn();
+                final googleUser = await authController.signInSilently();
+                final userId = await authController.fetchUserData(googleUser);
 
-                MyNavigator.pushNamed(GoPaths.dashboardView);
+                final response =
+                    await authController.submitOnboarding(userId.toString());
+                if (response['status'] == true) {
+                  MyNavigator.pushNamed(GoPaths.dashboardView);
+                } else {
+                  messageScaffold(content: response['message']);
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6C4AFF),
@@ -476,7 +489,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
                 ),
                 minimumSize: const Size.fromHeight(48),
               ),
-              child: const Text("SIGN IN WITH GOOGLE"),
+              child: const Text("GET STARTED"),
             ),
           ),
           const SizedBox(height: 20),

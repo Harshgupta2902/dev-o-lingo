@@ -6,12 +6,21 @@ setLogin(bool login) {
   prefs.write("IS_LOGGED_IN", login);
 }
 
-setUuid(String uuid) {
+setUuid(String uuid, String email) {
   prefs.write("uuid", uuid);
+  prefs.write("email", email);
 }
 
 getUuid() {
   return prefs.read("uuid");
+}
+
+getEmailId() {
+  return prefs.read("email");
+}
+
+setJwtToken(String token) {
+  prefs.write('JWT_TOKEN', token);
 }
 
 setFCMToken(String token) {
@@ -30,11 +39,6 @@ isLoggedIn() {
     return false;
   }
   return loggedIn == true && uuid != null ? true : false;
-}
-
-setStaticPref() {
-  prefs.write("IS_LOGGED_IN", true);
-  prefs.write("uuid", "117735150970465752256");
 }
 
 clearPrefs() async {

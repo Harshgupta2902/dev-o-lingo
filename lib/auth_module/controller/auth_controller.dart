@@ -1,25 +1,39 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lingolearn/auth_module/controller/onboarding_controller.dart';
+import 'package:lingolearn/auth_module/models/user_model.dart';
 import 'package:lingolearn/utilities/common/scaffold_messenger.dart';
+import 'package:lingolearn/utilities/dio/api_end_points.dart';
+import 'package:lingolearn/utilities/dio/api_request.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
+import 'package:lingolearn/utilities/navigation/go_paths.dart';
+import 'package:lingolearn/utilities/navigation/navigator.dart';
 
 final onboardingController = Get.put(OnboardingController());
 
-class AuthController extends GetxController with StateMixin<UserModel> {
+class AuthController extends GetxController
+    with StateMixin<SocialLoginResponse> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  Rxn<UserModel> currentUser = Rxn<UserModel>();
 
   RxBool isLoggingIn = RxBool(false);
 
-  googleSignIn() async {
+  signInSilently() async {
+    final GoogleSignInAccount? account = await _googleSignIn.signInSilently();
+    return account;
+  }
+
+  googleSignIn({bool? isRegister = false}) async {
     debugPrint("AuthController => googleSignIn > started");
 
     try {
       isLoggingIn.value = true;
+      await _googleSignIn.signOut();
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -28,19 +42,13 @@ class AuthController extends GetxController with StateMixin<UserModel> {
         return;
       }
 
-      debugPrint(
-          "AuthController => Google sign-in successful: ${googleUser.displayName}, ${googleUser.email}");
-
-      if (isLoggedIn()) {
+      if (isRegister == false) {
+        fetchUserData(googleUser);
       } else {
-        await saveGoogleUserToFirestore(googleUser);
-        fetchUserData(googleUser.id);
+        await saveUser(googleUser);
+        fetchUserData(googleUser);
+        MyNavigator.pushNamed(GoPaths.onBoardingView);
       }
-
-      messageScaffold(
-        content: "Login Successful ${googleUser.displayName}",
-        messageScaffoldType: MessageScaffoldType.success,
-      );
     } catch (e) {
       debugPrint("AuthController => Error during Google sign-in: $e");
       messageScaffold(
@@ -53,27 +61,109 @@ class AuthController extends GetxController with StateMixin<UserModel> {
     }
   }
 
-  Future<void> saveGoogleUserToFirestore(GoogleSignInAccount googleUser) async {
+  saveUser(GoogleSignInAccount googleUser) async {
+    change(null, status: RxStatus.loading());
+    const apiEndPoint = APIEndPoints.socialLogin;
+    debugPrint("---------- $apiEndPoint socialLogin Start ----------");
     try {
-      final userRef = _firestore.collection('userData').doc(googleUser.id);
+      final response = await postRequest(
+        apiEndPoint: apiEndPoint,
+        postData: {
+          'uid': googleUser.id,
+          'name': googleUser.displayName,
+          'email': googleUser.email,
+          'photoURL': googleUser.photoUrl,
+          'fcm_token': getFCMToken(),
+          'provider': "GOOGLE"
+        },
+      );
 
-      final onboardingData = await onboardingController.getAllOnboardingData();
+      debugPrint("AuthController => socialLogin > Success  $response");
 
-      await userRef.set({
-        'uid': googleUser.id,
-        'displayName': googleUser.displayName,
-        'email': googleUser.email,
-        'photoURL': googleUser.photoUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-        'token': getFCMToken(),
-        ...onboardingData,
-      });
-      setLogin(true);
-      setUuid(googleUser.id);
+      messageScaffold(
+        content: "Welcome onboard, ${googleUser.displayName}",
+        messageScaffoldType: MessageScaffoldType.success,
+      );
+    } catch (error) {
       debugPrint(
-          "AuthController => Google user saved to Firestore: ${googleUser.id}, ${googleUser.email}");
-    } catch (e) {
-      debugPrint("AuthController => Error saving Google user to Firestore: $e");
+          "---------- $apiEndPoint socialLogin End With Error ----------");
+      debugPrint("AuthController => socialLogin > Error $error ");
+      change(null, status: RxStatus.error());
+    } finally {
+      debugPrint("---------- $apiEndPoint socialLogin End ----------");
+    }
+  }
+
+  Future<int?> fetchUserData(GoogleSignInAccount googleUser) async {
+    change(null, status: RxStatus.loading());
+    const apiEndPoint = APIEndPoints.fetchUserData;
+    try {
+      final response = await postRequest(
+        apiEndPoint: apiEndPoint,
+        postData: {
+          'uid': googleUser.id,
+          'email': googleUser.email,
+        },
+      );
+
+      final responseData =
+          response.data is String ? jsonDecode(response.data) : response.data;
+
+      if (responseData["status"] == false &&
+          responseData["code"] == "USER_NOT_FOUND") {
+        debugPrint("User not found → going to onboarding flow");
+
+        await saveUser(googleUser);
+        MyNavigator.pushNamed(GoPaths.onBoardingView);
+        return null;
+      }
+
+      final modal = SocialLoginResponse.fromJson(responseData);
+      change(modal, status: RxStatus.success());
+
+      setLogin(true);
+      setJwtToken(modal.data.jwtToken ?? "");
+      setUuid(modal.data.user.uid ?? "", modal.data.user.email ?? "");
+
+      messageScaffold(
+        content: "Login Successful ${modal.data.user.name}",
+        messageScaffoldType: MessageScaffoldType.success,
+      );
+
+      return modal.data.user.id;
+    } catch (error) {
+      change(null, status: RxStatus.error());
+    } finally {
+      debugPrint("---------- fetchUserData End ----------");
+    }
+    return null;
+  }
+
+  Future<dynamic> submitOnboarding(String id) async {
+    change(null, status: RxStatus.loading());
+    const apiEndPoint = APIEndPoints.submitOnboarding;
+    debugPrint("---------- $apiEndPoint submitOnboarding Start ----------");
+    try {
+      final data = await onboardingController.getAllOnboardingData();
+      final response = await postRequest(
+        apiEndPoint: apiEndPoint,
+        postData: {
+          'userId': id,
+          ...data,
+        },
+      );
+
+      debugPrint("AuthController => submitOnboarding > Success  $response");
+      final responseData =
+          response.data is String ? jsonDecode(response.data) : response.data;
+      return responseData;
+    } catch (error) {
+      debugPrint(
+          "---------- $apiEndPoint submitOnboarding End With Error ----------");
+      debugPrint("AuthController => submitOnboarding > Error $error ");
+      change(null, status: RxStatus.error());
+    } finally {
+      debugPrint("---------- $apiEndPoint submitOnboarding End ----------");
     }
   }
 
@@ -81,15 +171,15 @@ class AuthController extends GetxController with StateMixin<UserModel> {
     debugPrint("AuthController => googleSignOut > started");
 
     try {
-      // Sign out from Google
       await _googleSignIn.signOut();
       setLogin(false);
-      currentUser.value = null;
+      clearPrefs();
       debugPrint("AuthController => Signed out from Google");
       messageScaffold(
         content: "User Logged Out",
         messageScaffoldType: MessageScaffoldType.success,
       );
+      MyNavigator.popUntilAndPushNamed(GoPaths.login);
     } catch (e) {
       debugPrint("AuthController => Error during Google sign-out: $e");
       messageScaffold(
@@ -101,84 +191,28 @@ class AuthController extends GetxController with StateMixin<UserModel> {
     }
   }
 
-  Future<void> fetchUserData(String uid) async {
+  updateFCMToken(String email, String uid, String fcmToken) async {
+    change(null, status: RxStatus.loading());
+    const apiEndPoint = APIEndPoints.updateFcmToken;
+    debugPrint("---------- $apiEndPoint updateFCMToken Start ----------");
     try {
-      DocumentSnapshot doc =
-          await _firestore.collection('userData').doc(uid).get();
-      if (doc.exists) {
-        final modal = UserModel.fromFirestore(doc);
-        change(modal, status: RxStatus.success());
-        debugPrint("AuthController => User data fetched: ${modal.displayName}");
-        debugPrint("AuthController => User data model fetched: $modal");
-        setLogin(true);
-        setUuid(modal.uid);
+      final response = await postRequest(
+        apiEndPoint: apiEndPoint,
+        postData: {
+          'uid': uid,
+          'email': email,
+          'fcm_token': fcmToken,
+        },
+      );
 
-        String currentToken = getFCMToken() ?? "";
-        if (modal.token != currentToken) {
-          await _updateUserToken(uid, currentToken);
-        }
-      } else {
-        debugPrint("AuthController => No user data found for uid: $uid");
-      }
-    } catch (e) {
-      debugPrint("AuthController => Error fetching user data: $e");
+      debugPrint("AuthController => updateFCMToken > Success  $response");
+    } catch (error) {
+      debugPrint(
+          "---------- $apiEndPoint updateFCMToken End With Error ----------");
+      debugPrint("AuthController => updateFCMToken > Error $error ");
+      change(null, status: RxStatus.error());
+    } finally {
+      debugPrint("---------- $apiEndPoint updateFCMToken End ----------");
     }
-  }
-
-  Future<void> _updateUserToken(String uid, String newToken) async {
-    try {
-      final userRef = _firestore.collection('userData').doc(uid);
-      await userRef.update(
-          {'token': newToken, 'updatedAt': FieldValue.serverTimestamp()});
-
-      debugPrint("AuthController => Updated user token for uid: $uid");
-    } catch (e) {
-      debugPrint("AuthController => Error updating token for uid: $uid: $e");
-    }
-  }
-}
-
-class UserModel {
-  String uid;
-  String? displayName;
-  String? email;
-  String? photoURL;
-  String? token;
-  Map<String, dynamic>? questionnaire;
-  Map<String, dynamic>? metadata;
-
-  UserModel({
-    required this.uid,
-    this.displayName,
-    this.email,
-    this.photoURL,
-    this.token,
-    this.questionnaire,
-    this.metadata,
-  });
-
-  factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    return UserModel(
-      uid: data['uid'],
-      displayName: data['displayName'],
-      email: data['email'],
-      photoURL: data['photoURL'],
-      token: data['token'],
-      questionnaire: data['questionnaire'] ?? {},
-      metadata: data['metadata'] ?? {},
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'uid': uid,
-      'displayName': displayName,
-      'email': email,
-      'photoURL': photoURL,
-      'token': token,
-      'questionnaire': questionnaire,
-      'metadata': metadata,
-    };
   }
 }

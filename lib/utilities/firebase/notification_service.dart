@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/utilities/constants/functions.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -8,7 +9,8 @@ import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 class CoreNotificationService {
   final _firebaseMessaging = FirebaseMessaging.instance;
-  static final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  static final flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> clearFCMToken() async {
     _firebaseMessaging.deleteToken();
@@ -18,14 +20,16 @@ class CoreNotificationService {
     await _firebaseMessaging.requestPermission();
     await getToken();
     _firebaseMessaging.subscribeToTopic('notification');
-    const initializationSettingsAndroid = AndroidInitializationSettings('mipmap/ic_notification');
+    const initializationSettingsAndroid =
+        AndroidInitializationSettings('mipmap/ic_notification');
     const initializationSettingsDarwin = DarwinInitializationSettings(
       requestSoundPermission: true,
       requestBadgePermission: true,
       requestAlertPermission: true,
     );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
@@ -81,7 +85,9 @@ class CoreNotificationService {
       final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       const androidNotificationDetails = AndroidNotificationDetails(
           'pushnotification', 'pushnotification',
-          importance: Importance.max, priority: Priority.high, color: AppColors.white
+          importance: Importance.max,
+          priority: Priority.high,
+          color: AppColors.white
           // styleInformation: BigPictureStyleInformation(DrawableResourceAndroidBitmap('ic_notification'), largeIcon:  DrawableResourceAndroidBitmap('ic_notification')),
           // largeIcon: DrawableResourceAndroidBitmap('mipmap/ic_launcher'),
           );
@@ -112,5 +118,11 @@ class CoreNotificationService {
       return;
     }
     setFCMToken(token);
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      authController.updateFCMToken(getEmailId(), getUuid(), newToken);
+      setFCMToken(newToken);
+      logger.i("🔄 Token rotated automatically: $newToken");
+    });
   }
 }

@@ -42,7 +42,7 @@ void main() async {
     );
   }
 
-  setStaticPref();
+  // setStaticPref();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

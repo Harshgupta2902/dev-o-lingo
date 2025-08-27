@@ -100,8 +100,8 @@ class _LoginViewState extends State<LoginView> {
               borderRadius: BorderRadius.circular(25),
             ),
             child: ElevatedButton(
-              onPressed: () {
-                MyNavigator.pushNamed(GoPaths.onBoardingView);
+              onPressed: () async {
+                await authController.googleSignIn(isRegister: true);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6C4AFF),
@@ -116,8 +116,7 @@ class _LoginViewState extends State<LoginView> {
           const SizedBox(height: 12),
           TextButton(
             onPressed: () async {
-              await authController.googleSignIn();
-              MyNavigator.pushNamed(GoPaths.dashboardView);
+              await authController.googleSignIn(isRegister: false);
             },
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF6C4AFF),
