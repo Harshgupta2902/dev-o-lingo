@@ -7,9 +7,7 @@ import 'package:lingolearn/auth_module/home_module/models/get_home_language_mode
 import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
-import 'package:lingolearn/auth_module/home_module/view/exercises_view.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
-import 'package:lingolearn/utilities/enums.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
@@ -107,13 +105,9 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   void _mapApiData(GetHomeLanguageModel model) {
     final unitsFromApi = model.data?.units ?? [];
-
-    // ✅ Directly assign new Units model
     units = unitsFromApi;
-
     allLessons =
         unitsFromApi.expand((unit) => unit.lessons ?? <Lessons>[]).toList();
-
     setState(() {
       _buildPathItems();
     });
@@ -160,99 +154,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     _bounceController.repeat(reverse: true);
     _floatController.repeat(reverse: true);
   }
-
-  // Future<void> _loadDataFromFirestore() async {
-  //   final firestore = FirebaseFirestore.instance;
-  //   final userId = await getUuid();
-  //
-  //   final unitSnap = await firestore
-  //       .collection('languages')
-  //       .doc('flutter')
-  //       .collection('units')
-  //       .orderBy('order')
-  //       .get();
-  //
-  //   units = unitSnap.docs.asMap().entries.map((entry) {
-  //     final index = entry.key;
-  //     final doc = entry.value;
-  //     final data = doc.data();
-  //     return UnitData(
-  //       data['order'],
-  //       data['title'],
-  //       data['description'],
-  //       unitColors[index % unitColors.length], // ✅ Use index instead
-  //       0,
-  //       (data['lessons'] as List).length,
-  //     );
-  //   }).toList();
-  //
-  //   final allLessonIds = units
-  //       .expand((u) => unitSnap.docs
-  //           .firstWhere((e) => e.data()['title'] == u.title)
-  //           .data()['lessons'] as List)
-  //       .cast<String>()
-  //       .toList();
-  //
-  //   final lessonChunks = <List<String>>[];
-  //   for (var i = 0; i < allLessonIds.length; i += 10) {
-  //     lessonChunks.add(allLessonIds.sublist(
-  //         i, i + 10 > allLessonIds.length ? allLessonIds.length : i + 10));
-  //   }
-  //
-  //   List<LessonData> fetchedLessons = [];
-  //   for (final chunk in lessonChunks) {
-  //     final snap = await firestore
-  //         .collection('chapters')
-  //         .where(FieldPath.documentId, whereIn: chunk)
-  //         .get();
-  //     fetchedLessons.addAll(snap.docs.map((doc) {
-  //       final data = doc.data();
-  //       return LessonData(
-  //         data['id'] != null
-  //             ? int.tryParse(data['id']
-  //                     .toString()
-  //                     .replaceAll(RegExp(r'[^0-9]'), '')) ??
-  //                 0
-  //             : 0,
-  //         data['title'],
-  //         '',
-  //         data['isBonus'] == true ? LessonType.bonus : LessonType.normal,
-  //         false,
-  //         false,
-  //       );
-  //     }));
-  //   }
-  //
-  //   if (userId != null) {
-  //     final progressSnap = await firestore
-  //         .collection('user_progress')
-  //         .doc(userId)
-  //         .collection('progress')
-  //         .doc('flutter_progress')
-  //         .get();
-  //
-  //     final lastCompletedId = progressSnap.data()?['lastCompletedLessonId'];
-  //
-  //     bool unlocked = true;
-  //     for (var lesson in fetchedLessons) {
-  //       if ('lesson_${lesson.id.toString()}' == lastCompletedId) {
-  //         lesson.isCompleted = true;
-  //         lesson.isCurrent = true;
-  //         unlocked = false;
-  //       } else if (unlocked) {
-  //         lesson.isCompleted = true;
-  //       } else {
-  //         lesson.isCompleted = false;
-  //         lesson.isCurrent = false;
-  //       }
-  //     }
-  //   }
-  //
-  //   setState(() {
-  //     allLessons = fetchedLessons;
-  //     _buildPathItems();
-  //   });
-  // }
 
   void _buildPathItems() {
     pathItems.clear();
@@ -307,6 +208,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.dark,
       ),
     );
 
