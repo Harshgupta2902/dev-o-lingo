@@ -93,7 +93,17 @@ final GoRouter goRouterConfig = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>;
         final slug = extras['slug'];
-        return LessonDetailScreen(slug: slug);
+        return ExerciseView(slug: slug);
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.questionnaireView,
+      name: GoPaths.questionnaireView,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final questions = extras['questions'];
+        return QuizScreen(questions: questions);
       },
     ),
   ],

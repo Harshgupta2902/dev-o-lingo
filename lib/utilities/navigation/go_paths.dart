@@ -6,4 +6,5 @@ class GoPaths {
 
   static const String dashboardView = '/DashboardView';
   static const String exercisesView = '/exercisesView';
+  static const String questionnaireView = '/questionnaireView';
 }
