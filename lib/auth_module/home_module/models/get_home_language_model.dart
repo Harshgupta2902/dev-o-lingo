@@ -30,6 +30,7 @@ class Data {
     this.languageId,
     this.languageTitle,
     this.unitCount,
+    this.lastCompletedLessonId,
     this.units,
   });
 
@@ -37,6 +38,7 @@ class Data {
     languageId = json['languageId'];
     languageTitle = json['languageTitle'];
     unitCount = json['unitCount'];
+    lastCompletedLessonId = json['lastCompletedLessonId'];
     if (json['units'] != null) {
       units = [];
       json['units'].forEach((v) {
@@ -47,6 +49,7 @@ class Data {
   num? languageId;
   String? languageTitle;
   num? unitCount;
+  num? lastCompletedLessonId;
   List<Units>? units;
 
   Map<String, dynamic> toJson() {
@@ -54,6 +57,7 @@ class Data {
     map['languageId'] = languageId;
     map['languageTitle'] = languageTitle;
     map['unitCount'] = unitCount;
+    map['lastCompletedLessonId'] = lastCompletedLessonId;
     if (units != null) {
       map['units'] = units?.map((v) => v.toJson()).toList();
     }
