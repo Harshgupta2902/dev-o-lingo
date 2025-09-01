@@ -21,19 +21,19 @@ const List<Color> unitColors = [
 ];
 
 final Map<Color, Map<String, String>> unitColorAssetMap = {
-  Color(0xFFA568CC): {
+  const Color(0xFFA568CC): {
     'normal': AssetPath.purpleSvg,
     'starred': AssetPath.purpleStarredSvg,
     'inactive': AssetPath.inactiveSvg,
     'inactive_starred': AssetPath.inactiveStarredSvg,
   },
-  Color(0xFFFF981F): {
+  const Color(0xFFFF981F): {
     'normal': AssetPath.yellowSvg,
     'starred': AssetPath.yellowStarredSvg,
     'inactive': AssetPath.inactiveSvg,
     'inactive_starred': AssetPath.inactiveStarredSvg,
   },
-  Color(0xFF543ACC): {
+  const Color(0xFF543ACC): {
     'normal': AssetPath.blueSvg,
     'starred': AssetPath.blueStarredSvg,
     'inactive': AssetPath.inactiveSvg,
@@ -105,9 +105,28 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   void _mapApiData(GetHomeLanguageModel model) {
     final unitsFromApi = model.data?.units ?? [];
+    final lastCompletedId = model.data?.lastCompletedLessonId;
+
     units = unitsFromApi;
     allLessons =
         unitsFromApi.expand((unit) => unit.lessons ?? <Lessons>[]).toList();
+
+    if (lastCompletedId != null) {
+      bool unlocked = true;
+      for (var lesson in allLessons) {
+        if (lesson.id == lastCompletedId) {
+          lesson.isCompleted = true;
+          lesson.isCurrent = true;
+          unlocked = false;
+        } else if (unlocked) {
+          lesson.isCompleted = true;
+        } else {
+          lesson.isCompleted = false;
+          lesson.isCurrent = false;
+        }
+      }
+    }
+
     setState(() {
       _buildPathItems();
     });
@@ -235,30 +254,61 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     );
   }
 
+  // Widget _buildHeader() {
+  //   return Container(
+  //     padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         _buildStatItem(Icons.local_fire_department, "7", Colors.orange),
+  //         _buildStatItem(Icons.diamond, "1,234", Colors.blue),
+  //         _buildStatItem(Icons.favorite, "5", Colors.red),
+  //         GestureDetector(
+  //           onTap: () => authController.googleSignOut(context),
+  //           child: Container(
+  //             width: 40,
+  //             height: 40,
+  //             decoration: BoxDecoration(
+  //               color: Colors.white.withOpacity(0.2),
+  //               borderRadius: BorderRadius.circular(20),
+  //             ),
+  //             child: const Icon(
+  //               Icons.person,
+  //               size: 24,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _buildHeader() {
+    final stats = languageController.state?.data?.stats;
+
     return Container(
-      padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
+      padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatItem(Icons.local_fire_department, "7", Colors.orange),
-          _buildStatItem(Icons.diamond, "1,234", Colors.blue),
-          _buildStatItem(Icons.favorite, "5", Colors.red),
-          GestureDetector(
-            onTap: () => authController.googleSignOut(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.person,
-                size: 24,
-              ),
-            ),
-          ),
+          _buildStatItem(Icons.local_fire_department, "${stats?.streak ?? 0}", Colors.orange),
+          _buildStatItem(Icons.diamond, "${stats?.gems ?? 0}", Colors.blue),
+          _buildStatItem(Icons.star, "${stats?.xp ?? 0}", Colors.purple),
+          _buildStatItem(Icons.favorite, "${stats?.hearts ?? 0}", Colors.red),
+          // GestureDetector(
+          //   onTap: () => authController.googleSignOut(context),
+          //   child: Container(
+          //     width: 40,
+          //     height: 40,
+          //     decoration: BoxDecoration(
+          //       color: Colors.white.withOpacity(0.2),
+          //       borderRadius: BorderRadius.circular(20),
+          //     ),
+          //     child: const Icon(
+          //       Icons.person,
+          //       size: 24,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -498,9 +548,9 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
                   slug: slug ?? "",
                   lessonNumber: lessonNumber,
                   unitNumber: unitNumber,
-                  isCompleted: false,
-                  isCurrent: false,
-                  isBonus: true,
+                  isCompleted: lessonData.isCompleted ?? false,
+                  isCurrent: lessonData.isCurrent ?? false,
+                  isBonus: false,
                   isLastInUnit: isLastInUnit,
                   bounceAnimation: widget.bounceAnimation,
                   floatAnimation: widget.floatAnimation,
