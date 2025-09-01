@@ -107,6 +107,9 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     final unitsFromApi = model.data?.units ?? [];
     final lastCompletedId = model.data?.lastCompletedLessonId;
 
+    int? currentLessonIndex;
+    bool unlocked = true;
+
     units = unitsFromApi;
     allLessons =
         unitsFromApi.expand((unit) => unit.lessons ?? <Lessons>[]).toList();
@@ -240,13 +243,14 @@ class _LessonPathScreenState extends State<LessonPathScreen>
                 _buildHeader(),
                 Expanded(
                   child: DuolingoLessonPathView(
-                    pathItems: pathItems,
-                    allLessons: allLessons,
-                    bounceAnimation: _bounceAnimation,
-                    floatAnimation: _floatAnimation,
-                    pulseAnimation: _pulseAnimation,
-                    units: units,
-                  ),
+                      pathItems: pathItems,
+                      allLessons: allLessons,
+                      bounceAnimation: _bounceAnimation,
+                      floatAnimation: _floatAnimation,
+                      pulseAnimation: _pulseAnimation,
+                      units: units,
+                      lastCompletedId: languageController
+                          .state?.data?.lastCompletedLessonId),
                 ),
                 _buildBottomNavigation(),
               ],
@@ -284,13 +288,13 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   // }
   Widget _buildHeader() {
     final stats = languageController.state?.data?.stats;
-
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatItem(Icons.local_fire_department, "${stats?.streak ?? 0}", Colors.orange),
+          _buildStatItem(Icons.local_fire_department, "${stats?.streak ?? 0}",
+              Colors.orange),
           _buildStatItem(Icons.diamond, "${stats?.gems ?? 0}", Colors.blue),
           _buildStatItem(Icons.star, "${stats?.xp ?? 0}", Colors.purple),
           _buildStatItem(Icons.favorite, "${stats?.hearts ?? 0}", Colors.red),
@@ -386,7 +390,7 @@ class DuolingoLessonPathView extends StatefulWidget {
   final Animation<double> bounceAnimation;
   final Animation<double> floatAnimation;
   final Animation<double> pulseAnimation;
-
+  final int? lastCompletedId;
   const DuolingoLessonPathView({
     super.key,
     required this.pathItems,
@@ -395,6 +399,7 @@ class DuolingoLessonPathView extends StatefulWidget {
     required this.allLessons,
     required this.pulseAnimation,
     required this.units,
+    this.lastCompletedId,
   });
 
   @override
@@ -416,20 +421,27 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
       _lessonKeys[item.pathIndex] = GlobalKey();
     }
 
-    // ✅ First unit ko default header ke liye set karo
+    // ✅ Default header ke liye first unit
     final firstUnitIndex = widget.pathItems.indexWhere((p) => p.type == 'unit');
     if (firstUnitIndex != -1) {
       _currentUnitIndex = widget.pathItems[firstUnitIndex].pathIndex;
     }
 
-    // Baaki tumhara post-frame ensureVisible code rehne do
+    // ✅ Post-frame scroll
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final firstLesson = widget.pathItems.firstWhere(
-        (item) => item.type == 'lesson',
-        orElse: () => widget.pathItems[firstUnitIndex],
+      final targetLesson = widget.pathItems.firstWhere(
+        (item) =>
+            item.type == 'lesson' &&
+            widget.lastCompletedId != null &&
+            (item.data as Lessons).id == widget.lastCompletedId,
+        orElse: () => widget.pathItems.firstWhere(
+          (p) => p.type == 'lesson',
+          orElse: () => widget.pathItems[firstUnitIndex],
+        ),
       );
 
-      for (int i = firstLesson.pathIndex; i >= 0; i--) {
+      // Header ko sahi unit par set karo
+      for (int i = targetLesson.pathIndex; i >= 0; i--) {
         if (widget.pathItems[i].type == 'unit') {
           if (_currentUnitIndex != widget.pathItems[i].pathIndex) {
             setState(() {
@@ -440,7 +452,8 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         }
       }
 
-      final key = _lessonKeys[firstLesson.pathIndex];
+      // ✅ Scroll to target lesson
+      final key = _lessonKeys[targetLesson.pathIndex];
       if (key?.currentContext != null) {
         Scrollable.ensureVisible(
           key!.currentContext!,

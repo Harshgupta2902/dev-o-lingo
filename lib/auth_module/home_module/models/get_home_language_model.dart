@@ -53,7 +53,7 @@ class Data {
   num? languageId;
   String? languageTitle;
   num? unitCount;
-  num? lastCompletedLessonId;
+  int? lastCompletedLessonId;
   List<Units>? units;
 
   Map<String, dynamic> toJson() {
