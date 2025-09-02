@@ -1,7 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -19,7 +16,6 @@ final onboardingController = Get.put(OnboardingController());
 class AuthController extends GetxController
     with StateMixin<SocialLoginResponse> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   RxBool isLoggingIn = RxBool(false);
 
@@ -122,8 +118,8 @@ class AuthController extends GetxController
       change(modal, status: RxStatus.success());
 
       setLogin(true);
-      setJwtToken(modal.data.jwtToken ?? "");
-      setUuid(modal.data.user.uid ?? "", modal.data.user.email ?? "");
+      setJwtToken(modal.data.jwtToken);
+      setUuid(modal.data.user.uid, modal.data.user.email);
 
       messageScaffold(
         content: "Login Successful ${modal.data.user.name}",

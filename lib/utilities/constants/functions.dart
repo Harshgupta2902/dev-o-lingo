@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:flutter/material.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';

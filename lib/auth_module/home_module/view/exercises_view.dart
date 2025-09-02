@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, avoid_print, unnecessary_to_list_in_spreads
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/auth_module/home_module/controller/exercises_controller.dart';

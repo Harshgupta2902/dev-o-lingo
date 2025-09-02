@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingolearn/auth_module/home_module/view/dashboard_view.dart';
+import 'package:lingolearn/auth_module/home_module/view/landing_view.dart';
+import 'package:lingolearn/auth_module/home_module/view/profile_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
 import 'package:lingolearn/auth_module/home_module/view/exercises_view.dart';
@@ -16,48 +18,32 @@ final GoRouter goRouterConfig = GoRouter(
   navigatorKey: rootNavigatorKey,
   routes: [
     //
-    // ShellRoute(
-    //   navigatorKey: shellNavigatorKey,
-    //   builder: (context, state, child) {
-    //     return LandingView(
-    //       child: child,
-    //     );
-    //   },
-    //   routes: [
-    //     GoRoute(
-    //       parentNavigatorKey: shellNavigatorKey,
-    //       path: GoPaths.mainBoard,
-    //       name: GoPaths.mainBoard,
-    //       builder: (context, state) {
-    //         return const MainBoardIpoView();
-    //       },
-    //     ),
-    //     GoRoute(
-    //       parentNavigatorKey: shellNavigatorKey,
-    //       path: GoPaths.sme,
-    //       name: GoPaths.sme,
-    //       builder: (context, state) {
-    //         return const SmeIpoView();
-    //       },
-    //     ),
-    //     GoRoute(
-    //       parentNavigatorKey: shellNavigatorKey,
-    //       path: GoPaths.gmp,
-    //       name: GoPaths.gmp,
-    //       builder: (context, state) {
-    //         return const IpoGmpView();
-    //       },
-    //     ),
-    //     GoRoute(
-    //       parentNavigatorKey: shellNavigatorKey,
-    //       path: GoPaths.blogs,
-    //       name: GoPaths.blogs,
-    //       builder: (context, state) {
-    //         return const BlogsMainView();
-    //       },
-    //     ),
-    //   ],
-    // ),
+    ShellRoute(
+      navigatorKey: shellNavigatorKey,
+      builder: (context, state, child) {
+        return LandingView(
+          child: child,
+        );
+      },
+      routes: [
+        GoRoute(
+          parentNavigatorKey: shellNavigatorKey,
+          path: GoPaths.dashboardView,
+          name: GoPaths.dashboardView,
+          builder: (context, state) {
+            return const LessonPathScreen();
+          },
+        ),
+        GoRoute(
+          parentNavigatorKey: shellNavigatorKey,
+          path: GoPaths.profileView,
+          name: GoPaths.profileView,
+          builder: (context, state) {
+            return const AccountScreen();
+          },
+        ),
+      ],
+    ),
 
     // ------------------   Registration Page Routes   ---------------------------
 
@@ -77,14 +63,14 @@ final GoRouter goRouterConfig = GoRouter(
         return const OnBoardingView();
       },
     ),
-    GoRoute(
-      parentNavigatorKey: rootNavigatorKey,
-      path: GoPaths.dashboardView,
-      name: GoPaths.dashboardView,
-      builder: (context, state) {
-        return const LessonPathScreen();
-      },
-    ),
+    // GoRoute(
+    //   parentNavigatorKey: rootNavigatorKey,
+    //   path: GoPaths.dashboardView,
+    //   name: GoPaths.dashboardView,
+    //   builder: (context, state) {
+    //     return const LessonPathScreen();
+    //   },
+    // ),
 
     GoRoute(
       parentNavigatorKey: rootNavigatorKey,

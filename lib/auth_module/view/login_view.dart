@@ -6,8 +6,6 @@ import 'package:lingolearn/auth_module/components/polygon_text.dart';
 import 'package:lingolearn/auth_module/controller/auth_controller.dart';
 import 'package:lingolearn/auth_module/controller/onboarding_controller.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
-import 'package:lingolearn/utilities/navigation/go_paths.dart';
-import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/utilities/theme/core_box_shadow.dart';
 

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -152,6 +154,8 @@ class LevelButton extends StatelessWidget {
   });
 
   Color _shadeColor(Color color, double factor) => Color.fromRGBO(
+      // ignore: duplicate_ignore
+      // ignore: deprecated_member_use
       math.max(0, color.red - (color.red * factor).round()),
       math.max(0, color.green - (color.green * factor).round()),
       math.max(0, color.blue - (color.blue * factor).round()),
