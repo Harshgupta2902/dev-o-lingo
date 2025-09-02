@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lingolearn/auth_module/home_module/controller/exercises_controller.dart';
-import 'package:lingolearn/auth_module/home_module/models/exercises_model.dart';
+import 'package:lingolearn/home_module/controller/exercises_controller.dart';
+import 'package:lingolearn/home_module/models/exercises_model.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:url_launcher/url_launcher.dart';

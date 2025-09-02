@@ -3,7 +3,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lingolearn/auth_module/home_module/controller/profile_controller.dart';
+import 'package:lingolearn/home_module/controller/profile_controller.dart';
+import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
 
 final profileController = Get.put(ProfileController());
 
@@ -31,9 +32,9 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return profileController.obx(
-      (state) {
-        return SingleChildScrollView(
+    return profileController.obx((state) {
+      return SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -76,9 +77,9 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 24),
             ],
           ),
-        );
-      },
-    );
+        ),
+      );
+    }, onLoading: const AccountSkeleton());
   }
 
   _buildAvatar(String url) {
@@ -269,7 +270,7 @@ class _StatsGrid extends StatelessWidget {
       itemCount: cards.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisExtent: 96,
+        mainAxisExtent: 70,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -305,7 +306,7 @@ class _StatCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(14),
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Row(
         children: [
           Container(

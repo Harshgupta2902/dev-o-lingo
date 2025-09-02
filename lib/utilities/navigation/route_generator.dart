@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingolearn/auth_module/home_module/view/dashboard_view.dart';
 import 'package:lingolearn/auth_module/home_module/view/landing_view.dart';
+import 'package:lingolearn/auth_module/home_module/view/leaderboard_view.dart';
 import 'package:lingolearn/auth_module/home_module/view/profile_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
@@ -40,6 +41,14 @@ final GoRouter goRouterConfig = GoRouter(
           name: GoPaths.profileView,
           builder: (context, state) {
             return const AccountScreen();
+          },
+        ),
+        GoRoute(
+          parentNavigatorKey: shellNavigatorKey,
+          path: GoPaths.leaderBoardView,
+          name: GoPaths.leaderBoardView,
+          builder: (context, state) {
+            return const LeaderboardScreen();
           },
         ),
       ],

@@ -1,16 +1,16 @@
-// ignore_for_file: avoid_print, deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:lingolearn/auth_module/home_module/controller/language_controller.dart';
-import 'package:lingolearn/auth_module/home_module/models/get_home_language_model.dart';
 import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
+import 'package:lingolearn/auth_module/view/login_view.dart';
+import 'package:lingolearn/home_module/controller/language_controller.dart';
+import 'package:lingolearn/home_module/models/get_home_language_model.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
+import 'package:lingolearn/utilities/skeleton/lesson_path_skeleton.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
 
 final languageController = Get.put(LanguageController());
@@ -68,7 +68,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     _initAnimations();
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) async {
-        await languageController.getLanguageData();
 
         if (languageController.state != null) {
           _mapApiData(languageController.state!);
@@ -107,6 +106,9 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   void _mapApiData(GetHomeLanguageModel model) {
     final unitsFromApi = model.data?.units ?? [];
     final lastCompletedId = model.data?.lastCompletedLessonId;
+
+    int? currentLessonIndex;
+    bool unlocked = true;
 
     units = unitsFromApi;
     allLessons =
@@ -235,16 +237,147 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       body: allLessons.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : DuolingoLessonPathView(
-              pathItems: pathItems,
-              allLessons: allLessons,
-              bounceAnimation: _bounceAnimation,
-              floatAnimation: _floatAnimation,
-              pulseAnimation: _pulseAnimation,
-              units: units,
-              lastCompletedId:
-                  languageController.state?.data?.lastCompletedLessonId),
+          ? const LessonPathSkeleton()
+          : Column(
+              children: [
+                _buildHeader(),
+                Expanded(
+                  child: DuolingoLessonPathView(
+                      pathItems: pathItems,
+                      allLessons: allLessons,
+                      bounceAnimation: _bounceAnimation,
+                      floatAnimation: _floatAnimation,
+                      pulseAnimation: _pulseAnimation,
+                      units: units,
+                      lastCompletedId: languageController
+                          .state?.data?.lastCompletedLessonId),
+                ),
+              ],
+            ),
+    );
+  }
+
+  // Widget _buildHeader() {
+  //   return Container(
+  //     padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         _buildStatItem(Icons.local_fire_department, "7", Colors.orange),
+  //         _buildStatItem(Icons.diamond, "1,234", Colors.blue),
+  //         _buildStatItem(Icons.favorite, "5", Colors.red),
+  //         GestureDetector(
+  //           onTap: () => authController.googleSignOut(context),
+  //           child: Container(
+  //             width: 40,
+  //             height: 40,
+  //             decoration: BoxDecoration(
+  //               color: Colors.white.withOpacity(0.2),
+  //               borderRadius: BorderRadius.circular(20),
+  //             ),
+  //             child: const Icon(
+  //               Icons.person,
+  //               size: 24,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  Widget _buildHeader() {
+    final stats = languageController.state?.data?.stats;
+    return Container(
+      padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildStatItem(Icons.local_fire_department, "${stats?.streak ?? 0}",
+              Colors.orange),
+          _buildStatItem(Icons.diamond, "${stats?.gems ?? 0}", Colors.blue),
+          _buildStatItem(Icons.star, "${stats?.xp ?? 0}", Colors.purple),
+          _buildStatItem(Icons.favorite, "${stats?.hearts ?? 0}", Colors.red),
+          // GestureDetector(
+          //   onTap: () => authController.googleSignOut(context),
+          //   child: Container(
+          //     width: 40,
+          //     height: 40,
+          //     decoration: BoxDecoration(
+          //       color: Colors.white.withOpacity(0.2),
+          //       borderRadius: BorderRadius.circular(20),
+          //     ),
+          //     child: const Icon(
+          //       Icons.person,
+          //       size: 24,
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, Color iconColor) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: iconColor, size: 20),
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNavigation() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildNavItem(Icons.home, "Home", true),
+          _buildNavItem(Icons.book, "Stories", false),
+          _buildNavItem(Icons.leaderboard, "Leaderboard", false),
+          _buildNavItem(Icons.person, "Profile", false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, bool isActive) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: isActive ? const Color(0xFF6C63FF) : Colors.grey,
+          size: 28,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: isActive ? const Color(0xFF6C63FF) : Colors.grey,
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 }
