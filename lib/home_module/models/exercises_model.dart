@@ -114,7 +114,7 @@ class Questions {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }
-  num? id;
+  int? id;
   num? languageId;
   String? mapKey;
   String? question;

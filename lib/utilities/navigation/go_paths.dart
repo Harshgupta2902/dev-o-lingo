@@ -10,4 +10,5 @@ class GoPaths {
 
   static const String exercisesView = '/exercisesView';
   static const String questionnaireView = '/questionnaireView';
+  static const String resultView = '/resultView';
 }

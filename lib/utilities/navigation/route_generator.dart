@@ -7,6 +7,8 @@ import 'package:lingolearn/home_module/view/profile_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
 import 'package:lingolearn/home_module/view/exercises_view.dart';
+import 'package:lingolearn/home_module/view/quiz_screen.dart';
+import 'package:lingolearn/home_module/view/result_view.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 
@@ -88,7 +90,11 @@ final GoRouter goRouterConfig = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>;
         final slug = extras['slug'];
-        return ExerciseView(slug: slug);
+        final lessonId = extras['lessonId'];
+        return ExerciseView(
+          slug: slug,
+          lessonId: lessonId,
+        );
       },
     ),
     GoRoute(
@@ -98,7 +104,31 @@ final GoRouter goRouterConfig = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>;
         final questions = extras['questions'];
-        return QuizScreen(questions: questions);
+        final lessonId = extras['lessonId'];
+        return QuizScreen(
+          questions: questions,
+          lessonId: lessonId,
+        );
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.resultView,
+      name: GoPaths.resultView,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final totalQuestions = extras['totalQuestions'];
+        final correctCount = extras['correctCount'];
+        final totalDurationMs = extras['totalDurationMs'];
+        final logs = extras['logs'];
+        final data = extras['data'];
+        return ResultScreen(
+          totalQuestions: totalQuestions,
+          correctCount: correctCount,
+          totalDurationMs: totalDurationMs,
+          logs: logs,
+          data: data,
+        );
       },
     ),
   ],

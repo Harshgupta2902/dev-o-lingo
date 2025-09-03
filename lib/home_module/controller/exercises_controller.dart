@@ -31,4 +31,23 @@ class ExercisesController extends GetxController
       debugPrint("---------- $apiEndPoint getExercisebyId End ----------");
     }
   }
+
+  Future<dynamic> submitLesson(Map<String, dynamic> postData) async {
+    const apiEndPoint = APIEndPoints.submitLesson;
+    debugPrint("---------- $apiEndPoint submitLesson Start ----------");
+    try {
+      final response =
+          await postRequest(apiEndPoint: apiEndPoint, postData: postData);
+
+      debugPrint("ExercisesController => submitLesson > Success  $response");
+
+      final responseData =
+          response.data is String ? jsonDecode(response.data) : response.data;
+      return responseData;
+    } catch (error) {
+      debugPrint("ExercisesController => submitLesson > Error $error ");
+    } finally {
+      debugPrint("---------- $apiEndPoint submitLesson End ----------");
+    }
+  }
 }
