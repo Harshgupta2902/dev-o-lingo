@@ -42,8 +42,8 @@ class _AccountScreenState extends State<AccountScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 8),
-              _buildAvatar(
-                  "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-BpiFKF1V8IoM5PLvNI67cuDMAy5xFu.png"),
+              _buildAvatar(state?.data?.user?.profile ?? ""),
+                  // "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-BpiFKF1V8IoM5PLvNI67cuDMAy5xFu.png"),
               const SizedBox(height: 12),
               Text(
                 state?.data?.user?.name ?? "User",

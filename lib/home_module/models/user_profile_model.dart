@@ -1,8 +1,11 @@
+import 'package:lingolearn/home_module/models/get_home_language_model.dart';
+
 class UserProfileModel {
   UserProfileModel({
     this.status,
     this.message,
-    this.data,});
+    this.data,
+  });
 
   UserProfileModel.fromJson(dynamic json) {
     status = json['status'];
@@ -22,14 +25,14 @@ class UserProfileModel {
     }
     return map;
   }
-
 }
 
 class Data {
   Data({
     this.jwtToken,
     this.user,
-    this.stats,});
+    this.stats,
+  });
 
   Data.fromJson(dynamic json) {
     jwtToken = json['jwtToken'];
@@ -51,60 +54,6 @@ class Data {
     }
     return map;
   }
-
-}
-
-class Stats {
-  Stats({
-    this.id,
-    this.userId,
-    this.xp,
-    this.streak,
-    this.gems,
-    this.hearts,
-    this.lastHeartUpdate,
-    this.lastStreakDate,
-    this.createdAt,
-    this.updatedAt,});
-
-  Stats.fromJson(dynamic json) {
-    id = json['id'];
-    userId = json['user_id'];
-    xp = json['xp'];
-    streak = json['streak'];
-    gems = json['gems'];
-    hearts = json['hearts'];
-    lastHeartUpdate = json['last_heart_update'];
-    lastStreakDate = json['last_streak_date'];
-    createdAt = json['created_at'];
-    updatedAt = json['updated_at'];
-  }
-  num? id;
-  num? userId;
-  int? xp;
-  num? streak;
-  num? gems;
-  num? hearts;
-  String? lastHeartUpdate;
-  String? lastStreakDate;
-  String? createdAt;
-  String? updatedAt;
-
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    map['id'] = id;
-    map['user_id'] = userId;
-    map['xp'] = xp;
-    map['streak'] = streak;
-    map['gems'] = gems;
-    map['hearts'] = hearts;
-    map['last_heart_update'] = lastHeartUpdate;
-    map['last_streak_date'] = lastStreakDate;
-    map['created_at'] = createdAt;
-    map['updated_at'] = updatedAt;
-    return map;
-  }
-
 }
 
 class User {
@@ -124,7 +73,8 @@ class User {
     this.otp,
     this.role,
     this.createdAt,
-    this.updatedAt,});
+    this.updatedAt,
+  });
 
   User.fromJson(dynamic json) {
     id = json['id'];
@@ -181,5 +131,4 @@ class User {
     map['updated_at'] = updatedAt;
     return map;
   }
-
 }

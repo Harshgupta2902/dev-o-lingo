@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
 import 'package:lingolearn/home_module/view/bottom_navigation.dart';
+import 'package:lingolearn/home_module/view/quiz_screen.dart';
 
 final languageController = Get.put(LanguageController());
 final profileController = Get.put(ProfileController());
@@ -26,6 +27,7 @@ class _LandingViewState extends State<LandingView> {
     if (languageController.state == null) {
       await languageController.getLanguageData();
     }
+    userStatsController.getUserStats();
     profileController.getUserProfile();
   }
 

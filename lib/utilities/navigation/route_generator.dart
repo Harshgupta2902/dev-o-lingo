@@ -19,6 +19,7 @@ final GlobalKey<NavigatorState> shellNavigatorKey =
 final GoRouter goRouterConfig = GoRouter(
   initialLocation: isLoggedIn() ? GoPaths.dashboardView : GoPaths.login,
   navigatorKey: rootNavigatorKey,
+  observers: [StatsObserver()],
   routes: [
     //
     ShellRoute(
@@ -133,3 +134,17 @@ final GoRouter goRouterConfig = GoRouter(
     ),
   ],
 );
+
+class StatsObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    userStatsController.getUserStats();
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    userStatsController.getUserStats();
+    super.didPop(route, previousRoute);
+  }
+}

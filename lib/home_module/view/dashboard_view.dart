@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
+import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -253,34 +254,24 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   }
 
   Widget _buildHeader() {
-    final stats = languageController.state?.data?.stats;
-    return Container(
-      padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildStatItem(Icons.local_fire_department, "${stats?.streak ?? 0}",
-              Colors.orange),
-          _buildStatItem(Icons.diamond, "${stats?.gems ?? 0}", Colors.blue),
-          _buildStatItem(Icons.star, "${stats?.xp ?? 0}", Colors.purple),
-          _buildStatItem(Icons.favorite, "${stats?.hearts ?? 0}", Colors.red),
-          // GestureDetector(
-          //   onTap: () => authController.googleSignOut(context),
-          //   child: Container(
-          //     width: 40,
-          //     height: 40,
-          //     decoration: BoxDecoration(
-          //       color: Colors.white.withOpacity(0.2),
-          //       borderRadius: BorderRadius.circular(20),
-          //     ),
-          //     child: const Icon(
-          //       Icons.person,
-          //       size: 24,
-          //     ),
-          //   ),
-          // ),
-        ],
-      ),
+    return userStatsController.obx(
+      (state) {
+        return Container(
+          padding:
+              const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStatItem(Icons.local_fire_department,
+                  "${state?.streak ?? 0}", Colors.orange),
+              _buildStatItem(Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
+              _buildStatItem(Icons.star, "${state?.xp ?? 0}", Colors.purple),
+              _buildStatItem(
+                  Icons.favorite, "${state?.hearts ?? 0}", Colors.red),
+            ],
+          ),
+        );
+      },
     );
   }
 

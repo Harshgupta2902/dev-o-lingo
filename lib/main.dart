@@ -10,6 +10,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
+import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/utilities/constants/functions.dart';
 import 'package:lingolearn/utilities/firebase/analytics_service.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
@@ -20,6 +21,7 @@ import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/utilities/theme/smooth_rectangular_border.dart';
 
 final languageController = Get.put(LanguageController());
+final userStatsController = Get.put(UserStatsController());
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -89,6 +91,7 @@ void main() async {
 
   if (getJwtToken() != null || getJwtToken() != "") {
     await languageController.getLanguageData();
+    userStatsController.getUserStats();
   }
 
   // final uid = getUuid();

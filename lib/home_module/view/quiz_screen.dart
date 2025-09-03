@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/exercises_controller.dart';
+import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/home_module/models/exercises_model.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 
 final exerciseController = Get.put(ExercisesController());
+final userStatsController = Get.put(UserStatsController());
 
 class QuizScreen extends StatefulWidget {
   final List<Questions> questions;
@@ -87,7 +89,30 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       isCorrect: correct,
     ));
 
-    // Subtle feedback via SnackBar
+    // 🫀 Handle hearts
+    if (!correct) {
+      var current = userStatsController.state?.hearts ?? 0;
+      if (current > 0) {
+        current = current - 1;
+        userStatsController.state?.hearts = current;
+      }
+
+      // ✅ now check AFTER decrement
+      if (current <= 0) {
+        // Optional: show message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Out of hearts! Submitting your quiz..."),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        _forceSubmit();
+        return;
+      }
+    }
+
+    // Normal feedback
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 0,
@@ -97,6 +122,40 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
         duration: const Duration(milliseconds: 1200),
       ),
     );
+  }
+
+  void _forceSubmit() {
+    final totalMs = _logs.fold<int>(0, (a, b) => a + b.durationMs);
+    final correctCount = _logs.where((l) => l.isCorrect).length;
+
+    // Add empty answers for unanswered questions
+    final answeredIds = _logs.map((l) => l.questionId).toSet();
+    final Map<String, String> answers = {
+      for (final l in _logs) l.questionId.toString(): l.selected,
+      for (final q in widget.questions)
+        if (!answeredIds.contains(q.id)) q.id.toString(): ""
+    };
+
+    final payload = {
+      "answers": answers,
+      "timeTaken": totalMs,
+      "lessonId": widget.lessonId,
+      "correctCount": correctCount,
+    };
+
+    exerciseController.submitLesson(payload).then((value) {
+      userStatsController.getUserStats();
+      MyNavigator.pushReplacementNamed(
+        GoPaths.resultView,
+        extra: {
+          "totalQuestions": widget.questions.length,
+          "correctCount": value['data']['correctCount'],
+          "totalDurationMs": totalMs,
+          "logs": _logs,
+          "data": value['data']
+        },
+      );
+    });
   }
 
   void _next() {
@@ -120,7 +179,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
 
       exerciseController.submitLesson(payload).then(
         (value) {
-          print(value['data'].toString());
+          userStatsController.getUserStats();
           MyNavigator.pushReplacementNamed(
             GoPaths.resultView,
             extra: {
@@ -134,16 +193,6 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
         },
       );
       return;
-
-      MyNavigator.pushReplacementNamed(
-        GoPaths.resultView,
-        extra: {
-          "totalQuestions": widget.questions.length,
-          "correctCount": correctCount,
-          "totalDurationMs": totalMs,
-          "logs": _logs,
-        },
-      );
     } else {
       _controller.nextPage(
           duration: const Duration(milliseconds: 350),
@@ -158,115 +207,144 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     final total = widget.questions.length;
     final progress = (_currentIndex + 1) / total;
 
-    return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: const Text("Exit Quiz?"),
-                content: const Text("Your progress will be lost."),
-                actions: [
-                  TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancel")),
-                  FilledButton.tonal(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Exit"),
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        body: Column(
+          children: [
+            const SizedBox(height: kToolbarHeight - 20),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Exit Quiz?"),
+                        content: const Text("Your progress will be lost."),
+                        actions: [
+                          TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Cancel")),
+                          FilledButton.tonal(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Exit"),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: LinearProgressIndicator(
+                        minHeight: 10,
+                        value: progress,
+                        backgroundColor: const Color(0xFFEAEAF2),
+                      ),
+                    ),
                   ),
-                ],
-              ),
-            );
-          },
-        ),
-        title: const Text("Quiz"),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: LinearProgressIndicator(
-                minHeight: 10,
-                value: progress,
-                backgroundColor: const Color(0xFFEAEAF2),
+                ),
+                userStatsController.obx(
+                  (state) {
+                    return _buildStatItem(
+                        Icons.favorite, "${state?.hearts ?? 0}", Colors.red);
+                  },
+                ),
+                const SizedBox(width: 20)
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text("Question ${_currentIndex + 1} of $total",
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+            Expanded(
+              child: PageView.builder(
+                controller: _controller,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: total,
+                itemBuilder: (context, index) {
+                  final q = widget.questions[index];
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    child: _QuestionCard(
+                      key: ValueKey(index),
+                      question: q,
+                      selected: index == _currentIndex ? _selected : null,
+                      submitted: index == _currentIndex ? _submitted : false,
+                      isCorrect: index == _currentIndex ? _isCorrect : false,
+                      onSelect: (value) {
+                        if (_submitted) return;
+                        setState(() => _selected = value);
+                      },
+                    ),
+                  );
+                },
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text("Question ${_currentIndex + 1} of $total",
-              style: const TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 12),
-          Expanded(
-            child: PageView.builder(
-              controller: _controller,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: total,
-              itemBuilder: (context, index) {
-                final q = widget.questions[index];
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: _QuestionCard(
-                    key: ValueKey(index),
-                    question: q,
-                    selected: index == _currentIndex ? _selected : null,
-                    submitted: index == _currentIndex ? _submitted : false,
-                    isCorrect: index == _currentIndex ? _isCorrect : false,
-                    onSelect: (value) {
-                      if (_submitted) return;
-                      setState(() => _selected = value);
-                    },
-                  ),
-                );
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: FilledButton(
+              onPressed: () {
+                if (!_submitted) {
+                  _submit();
+                } else {
+                  _next();
+                }
               },
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: FilledButton(
-            onPressed: () {
-              if (!_submitted) {
-                _submit();
-              } else {
-                _next();
-              }
-            },
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(54),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-              backgroundColor: !_submitted
-                  ? null
-                  : (_isCorrect
-                      ? const Color(0xFF16A34A)
-                      : const Color(0xFFDC2626)),
-            ),
-            child: Text(
-              !_submitted
-                  ? "Submit"
-                  : (_currentIndex == widget.questions.length - 1
-                      ? "Finish"
-                      : "Next"),
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(54),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                backgroundColor: !_submitted
+                    ? null
+                    : (_isCorrect
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFDC2626)),
+              ),
+              child: Text(
+                !_submitted
+                    ? "Submit"
+                    : (_currentIndex == widget.questions.length - 1
+                        ? "Finish"
+                        : "Next"),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, Color iconColor) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: iconColor, size: 20),
+        const SizedBox(width: 6),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
   }
 }

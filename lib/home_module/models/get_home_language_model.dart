@@ -27,7 +27,6 @@ class GetHomeLanguageModel {
 
 class Data {
   Data({
-    this.stats,
     this.languageId,
     this.languageTitle,
     this.unitCount,
@@ -36,8 +35,6 @@ class Data {
   });
 
   Data.fromJson(dynamic json) {
-    stats = json['stats'] != null ? Stats.fromJson(json['stats']) : null;
-
     languageId = json['languageId'];
     languageTitle = json['languageTitle'];
     unitCount = json['unitCount'];
@@ -49,7 +46,6 @@ class Data {
       });
     }
   }
-  Stats? stats;
   num? languageId;
   String? languageTitle;
   num? unitCount;
@@ -58,9 +54,6 @@ class Data {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    if (stats != null) {
-      map['stats'] = stats?.toJson();
-    }
     map['languageId'] = languageId;
     map['languageTitle'] = languageTitle;
     map['unitCount'] = unitCount;
@@ -183,7 +176,7 @@ class Stats {
   }
   num? id;
   num? userId;
-  num? xp;
+  int? xp;
   num? streak;
   num? gems;
   num? hearts;

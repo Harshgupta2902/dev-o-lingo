@@ -33,3 +33,6 @@ class ProfileController extends GetxController
     }
   }
 }
+
+
+
