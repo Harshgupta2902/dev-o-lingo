@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -105,6 +106,8 @@ class AuthController extends GetxController
       final responseData =
           response.data is String ? jsonDecode(response.data) : response.data;
 
+      log("response fetchuserdtata $responseData");
+
       if (responseData["status"] == false &&
           responseData["code"] == "USER_NOT_FOUND") {
         debugPrint("User not found → going to onboarding flow");
@@ -118,6 +121,8 @@ class AuthController extends GetxController
       change(modal, status: RxStatus.success());
 
       setLogin(true);
+      log("response fetchuserdtata jwtToken ${modal.data.jwtToken}");
+
       setJwtToken(modal.data.jwtToken);
       setUuid(modal.data.user.uid, modal.data.user.email);
 

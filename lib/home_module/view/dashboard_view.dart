@@ -65,13 +65,11 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   void initState() {
     super.initState();
     _initAnimations();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) async {
-        if (languageController.state != null) {
-          _mapApiData(languageController.state!);
-        }
-      },
-    );
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      if (languageController.state != null) {
+        _mapApiData(languageController.state!);
+      }
+    });
   }
 
   List<Units> mapUnits(List<Units> apiUnits) {
@@ -221,67 +219,38 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.dark,
-      ),
-    );
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
-      body: allLessons.isEmpty
-          ? const LessonPathSkeleton()
-          : Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: DuolingoLessonPathView(
-                      pathItems: pathItems,
-                      allLessons: allLessons,
-                      bounceAnimation: _bounceAnimation,
-                      floatAnimation: _floatAnimation,
-                      pulseAnimation: _pulseAnimation,
-                      units: units,
-                      lastCompletedId: languageController
-                          .state?.data?.lastCompletedLessonId),
+      body: languageController.obx(
+        (state) {
+          if (state == null || state.data == null) {
+            return const LessonPathSkeleton();
+          }
+          return Column(
+            children: [
+              _buildHeader(state),
+              Expanded(
+                child: DuolingoLessonPathView(
+                  pathItems: pathItems,
+                  allLessons: allLessons,
+                  units: units,
+                  lastCompletedId: state.data?.lastCompletedLessonId,
+                  bounceAnimation: _bounceAnimation,
+                  floatAnimation: _floatAnimation,
+                  pulseAnimation: _pulseAnimation,
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
+        onLoading: const LessonPathSkeleton(),
+        onError: (error) => Center(child: Text("Error: $error")),
+      ),
     );
   }
 
-  // Widget _buildHeader() {
-  //   return Container(
-  //     padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //       children: [
-  //         _buildStatItem(Icons.local_fire_department, "7", Colors.orange),
-  //         _buildStatItem(Icons.diamond, "1,234", Colors.blue),
-  //         _buildStatItem(Icons.favorite, "5", Colors.red),
-  //         GestureDetector(
-  //           onTap: () => authController.googleSignOut(context),
-  //           child: Container(
-  //             width: 40,
-  //             height: 40,
-  //             decoration: BoxDecoration(
-  //               color: Colors.white.withOpacity(0.2),
-  //               borderRadius: BorderRadius.circular(20),
-  //             ),
-  //             child: const Icon(
-  //               Icons.person,
-  //               size: 24,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-  Widget _buildHeader() {
-    final stats = languageController.state?.data?.stats;
+  Widget _buildHeader(GetHomeLanguageModel state) {
+    final stats = state.data?.stats;
     return Container(
       padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
       child: Row(
@@ -292,21 +261,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
           _buildStatItem(Icons.diamond, "${stats?.gems ?? 0}", Colors.blue),
           _buildStatItem(Icons.star, "${stats?.xp ?? 0}", Colors.purple),
           _buildStatItem(Icons.favorite, "${stats?.hearts ?? 0}", Colors.red),
-          // GestureDetector(
-          //   onTap: () => authController.googleSignOut(context),
-          //   child: Container(
-          //     width: 40,
-          //     height: 40,
-          //     decoration: BoxDecoration(
-          //       color: Colors.white.withOpacity(0.2),
-          //       borderRadius: BorderRadius.circular(20),
-          //     ),
-          //     child: const Icon(
-          //       Icons.person,
-          //       size: 24,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -375,7 +329,7 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
     }
 
     // ✅ Post-frame scroll
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final targetLesson = widget.pathItems.firstWhere(
         (item) =>
             item.type == 'lesson' &&

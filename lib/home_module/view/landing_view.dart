@@ -19,11 +19,13 @@ class _LandingViewState extends State<LandingView> {
   @override
   void initState() {
     super.initState();
-    _initData(); // ✅ call async loader
+    _initData();
   }
 
   Future<void> _initData() async {
-    await languageController.getLanguageData();
+    if (languageController.state == null) {
+      await languageController.getLanguageData();
+    }
     profileController.getUserProfile();
   }
 

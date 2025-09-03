@@ -23,6 +23,10 @@ setJwtToken(String token) {
   prefs.write('JWT_TOKEN', token);
 }
 
+getJwtToken() {
+  return prefs.read('JWT_TOKEN');
+}
+
 setFCMToken(String token) {
   prefs.write('FCM_TOKEN', token);
 }

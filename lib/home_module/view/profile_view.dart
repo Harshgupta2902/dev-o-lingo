@@ -3,7 +3,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lingolearn/auth_module/view/onboarding_view.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
+import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
 
 final profileController = Get.put(ProfileController());
@@ -164,7 +166,10 @@ class _ActionButtonsRow extends StatelessWidget {
       children: [
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              authController.googleSignOut(context);
+              clearPrefs();
+            },
             style: ElevatedButton.styleFrom(
               elevation: 0,
               backgroundColor: primary,
