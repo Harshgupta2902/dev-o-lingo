@@ -11,9 +11,6 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   int _rangeIndex = 0;
-  int _navIndex = 1;
-
-  // Mock data
   final List<_User> top3 = const [
     _User(
       name: 'Andrew',
@@ -459,25 +456,6 @@ class _Pill extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CircleIcon extends StatelessWidget {
-  const _CircleIcon(
-      {required this.icon, required this.bg, required this.color});
-
-  final IconData icon;
-  final Color bg;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 34,
-      height: 34,
-      decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-      child: Icon(icon, color: color, size: 20),
     );
   }
 }
