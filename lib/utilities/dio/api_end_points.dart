@@ -1,7 +1,7 @@
 class APIEndPoints {
   static const live = 'https://ipo-tec-app-api.vercel.app/app/';
-  static const local = 'http://10.184.79.182:3011/api/';
-  // static const local = 'http://192.168.1.52:3011/api/';
+  static const local = 'http://10.184.79.123:3020/api/';
+  // static const local = 'http://192.168.1.52:3020/api/';
 
   static const base = local;
 
@@ -17,4 +17,8 @@ class APIEndPoints {
 
   static const getUserProfile = "getUserProfile";
   static const getUserStats = "getUserStats";
+
+  static const getDailyPractiseTest = "daily-practice/week";
+  static const getPractiseTest = "get-daily-practice";
+  static const submitDailyPractice = "daily-practice/submit";
 }

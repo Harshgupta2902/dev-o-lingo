@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lingolearn/home_module/view/dashboard_view.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
+import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
 
@@ -156,22 +158,16 @@ class _ResultScreenState extends State<ResultScreen>
 
               const Spacer(),
 
-              // View details of logs
-              // TextButton.icon(
-              //   onPressed: () => _showDetails(context),
-              //   icon: const Icon(Icons.list_alt_rounded),
-              //   label: const Text("View details"),
-              // ),
-
-              const SizedBox(height: 6),
-
               // Continue button
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () => MyNavigator.pop(),
+                    onPressed: () async {
+                      await languageController.getLanguageData();
+                      MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
+                    },
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(56),
                       shape: RoundedRectangleBorder(

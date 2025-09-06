@@ -11,7 +11,6 @@ import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
 final profileController = Get.put(ProfileController());
 
 const Color kPrimary = Color(0xFF6C5CE7);
-const Color kBg = Color(0xFFF4F5F7);
 const Color kMuted = Color(0xFF6B7280);
 const Color kAccentGreen = Color(0xFF16A34A);
 
@@ -43,7 +42,6 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               const SizedBox(height: 8),
               _buildAvatar(state?.data?.user?.profile ?? ""),
-                  // "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-BpiFKF1V8IoM5PLvNI67cuDMAy5xFu.png"),
               const SizedBox(height: 12),
               Text(
                 state?.data?.user?.name ?? "User",
@@ -59,13 +57,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   color: kMuted,
                 ),
               ),
-              const SizedBox(height: 16),
-              const Divider(height: 1),
               const SizedBox(height: 12),
               _buildTopCountRow(40, 50, state?.data?.stats?.xp ?? 0),
               const SizedBox(height: 16),
-              const _ActionButtonsRow(),
-              const SizedBox(height: 20),
               const _SectionHeader(
                 title: 'Your Statistics',
                 trailing: Icon(
@@ -151,51 +145,6 @@ class _VerticalDivider extends StatelessWidget {
         thickness: 1,
         color: Colors.grey.shade300,
       ),
-    );
-  }
-}
-
-class _ActionButtonsRow extends StatelessWidget {
-  const _ActionButtonsRow();
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = kPrimary;
-
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {
-              authController.googleSignOut(context);
-              clearPrefs();
-            },
-            style: ElevatedButton.styleFrom(
-              elevation: 0,
-              backgroundColor: primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: const StadiumBorder(),
-            ),
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Edit Profile'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: primary, width: 1.5),
-              foregroundColor: primary,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: const StadiumBorder(),
-            ),
-            icon: const Icon(Icons.chat_bubble_outline, size: 18),
-            label: const Text('Message'),
-          ),
-        ),
-      ],
     );
   }
 }

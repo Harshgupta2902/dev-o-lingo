@@ -62,7 +62,7 @@ void _onItemTapped(int index) {
       MyNavigator.pushNamed(GoPaths.dashboardView);
       break;
     case 1:
-      MyNavigator.pushNamed(GoPaths.dashboardView);
+      MyNavigator.pushNamed(GoPaths.dailyPracticesScreen);
       break;
     case 2:
       MyNavigator.pushNamed(GoPaths.leaderBoardView);

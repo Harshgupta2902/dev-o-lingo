@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lingolearn/home_module/view/daily_practise_view.dart';
 import 'package:lingolearn/home_module/view/dashboard_view.dart';
 import 'package:lingolearn/home_module/view/landing_view.dart';
 import 'package:lingolearn/home_module/view/leaderboard_view.dart';
+import 'package:lingolearn/home_module/view/practice_quiz_screen.dart';
 import 'package:lingolearn/home_module/view/profile_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
@@ -36,6 +38,14 @@ final GoRouter goRouterConfig = GoRouter(
           name: GoPaths.dashboardView,
           builder: (context, state) {
             return const LessonPathScreen();
+          },
+        ),
+        GoRoute(
+          parentNavigatorKey: shellNavigatorKey,
+          path: GoPaths.dailyPracticesScreen,
+          name: GoPaths.dailyPracticesScreen,
+          builder: (context, state) {
+            return const DailyPracticesScreen();
           },
         ),
         GoRoute(
@@ -75,14 +85,6 @@ final GoRouter goRouterConfig = GoRouter(
         return const OnBoardingView();
       },
     ),
-    // GoRoute(
-    //   parentNavigatorKey: rootNavigatorKey,
-    //   path: GoPaths.dashboardView,
-    //   name: GoPaths.dashboardView,
-    //   builder: (context, state) {
-    //     return const LessonPathScreen();
-    //   },
-    // ),
 
     GoRoute(
       parentNavigatorKey: rootNavigatorKey,
@@ -96,6 +98,16 @@ final GoRouter goRouterConfig = GoRouter(
           slug: slug,
           lessonId: lessonId,
         );
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.practicesQuestionScreen,
+      name: GoPaths.practicesQuestionScreen,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final practiceId = extras['practiceId'];
+        return PracticeQuizScreen(practiceId: practiceId);
       },
     ),
     GoRoute(
