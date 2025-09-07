@@ -42,7 +42,7 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
         color: kPrimary,
         backgroundColor: Colors.white,
         height: 80,
-        animSpeedFactor: 1.0,
+        animSpeedFactor: 2.0,
         child: Column(
           children: [
             const CustomHeader(

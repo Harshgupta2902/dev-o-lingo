@@ -23,7 +23,6 @@ dependencies:
   logger: ^2.4.0
 
   package_rename: ^1.5.3
-  flutter_native_splash: ^2.4.1
 
   package_info_plus: ^4.0.0
   device_info_plus: ^10.1.2
@@ -98,12 +97,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
-
-flutter_native_splash:
-  android: true
-  ios: true
-  color: "#FFFFFF"
-  image: "assets/icons/logo.png"
-  android_12:
-    image: "assets/icons/logo.png"

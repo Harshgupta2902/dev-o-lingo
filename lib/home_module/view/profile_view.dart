@@ -37,7 +37,7 @@ class _AccountScreenState extends State<AccountScreen> {
         color: kPrimary,
         backgroundColor: Colors.white,
         height: 80,
-        animSpeedFactor: 1.0,
+        animSpeedFactor: 2.0,
         child: profileController.obx(
           (state) {
             return SingleChildScrollView(
@@ -253,7 +253,7 @@ class _AchievementStrip extends StatelessWidget {
         itemBuilder: (context, i) {
           final achievement = items[i];
           return Container(
-            width: 240,
+            width: 260,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -268,6 +268,7 @@ class _AchievementStrip extends StatelessWidget {
             ),
             child: Row(
               children: [
+                // icon
                 Container(
                   width: 48,
                   height: 48,
@@ -282,8 +283,8 @@ class _AchievementStrip extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: achievement.iconUrl != null &&
-                          achievement.iconUrl!.isNotEmpty
+                  child: (achievement.iconUrl != null &&
+                          achievement.iconUrl!.isNotEmpty)
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(achievement.iconUrl!,
@@ -293,25 +294,64 @@ class _AchievementStrip extends StatelessWidget {
                           color: kPrimary, size: 24),
                 ),
                 const SizedBox(width: 12),
+
+                // text
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        achievement.title ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: kOnSurface,
-                        ),
+                      // title + time on same line
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              achievement.title ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: kOnSurface,
+                              ),
+                            ),
+                          ),
+                          if ((achievement.achievedAt ?? '').isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.schedule_rounded,
+                                      size: 12, color: kMuted),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    achievement.achievedAt!, // "3m ago"
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: kMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
+
+                      // description
                       Text(
                         achievement.description ?? '',
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,

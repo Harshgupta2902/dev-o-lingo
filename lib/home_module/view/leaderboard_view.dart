@@ -49,7 +49,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         color: kPrimary,
         backgroundColor: Colors.white,
         height: 80,
-        animSpeedFactor: 1.0,
+        animSpeedFactor: 2.0,
         child: leaderboardController.obx(
           (state) {
             final weekly = state?.data?.weekly ?? const <Weekly>[];
@@ -118,85 +118,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             message: err ?? 'Failed to load leaderboard',
             onRetry: _refresh,
           ),
-        ),
-      ),
-    );
-    return SafeArea(
-      child: leaderboardController.obx(
-        (state) {
-          final weekly = state?.data?.weekly ?? const <Weekly>[];
-          final monthly = state?.data?.monthly ?? const <Monthly>[];
-
-          // choose current list
-          final items = _selectedTab == 0
-              ? weekly.map((e) => _LBUser(
-                    name: e.name ?? 'Unknown',
-                    xp: (e.xp ?? 0).toInt(),
-                    avatar: e.avatar ?? '',
-                    rank: (e.rank ?? 0).toInt(),
-                  ))
-              : monthly.map((e) => _LBUser(
-                    name: e.name ?? 'Unknown',
-                    xp: (e.xp ?? 0).toInt(),
-                    avatar: e.avatar ?? '',
-                    rank: (e.rank ?? 0).toInt(),
-                  ));
-
-          return LiquidPullToRefresh(
-            onRefresh: _refresh,
-            color: kPrimary,
-            backgroundColor: Colors.white,
-            height: 80,
-            animSpeedFactor: 1.0,
-            child: Column(
-              children: [
-                const CustomHeader(
-                    title: "Leaderboard", icon: Icons.leaderboard),
-
-                // Filter Pills
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      _FilterPill(
-                        label: 'Weekly',
-                        isSelected: _selectedTab == 0,
-                        onTap: () => setState(() => _selectedTab = 0),
-                      ),
-                      const SizedBox(width: 12),
-                      _FilterPill(
-                        label: 'Monthly',
-                        isSelected: _selectedTab == 1,
-                        onTap: () => setState(() => _selectedTab = 1),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // List
-                Expanded(
-                  child: items.isEmpty
-                      ? const _EmptyState()
-                      : ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: items.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) =>
-                              _LeaderboardTile(user: items.elementAt(index)),
-                        ),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          );
-        },
-        onLoading: const LeaderboardSkeleton(),
-        onError: (err) => _ErrorState(
-          message: err ?? 'Failed to load leaderboard',
-          onRetry: _refresh,
         ),
       ),
     );

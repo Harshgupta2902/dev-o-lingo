@@ -7,7 +7,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
@@ -33,8 +32,7 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   if (Platform.isAndroid) {
     await Firebase.initializeApp(
@@ -47,7 +45,6 @@ void main() async {
     );
   }
 
-  // setStaticPref();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -94,11 +91,7 @@ void main() async {
     userStatsController.getUserStats();
   }
 
-  // final uid = getUuid();
-  // authController.fetchUserData(uid);
-
   runApp(const MyApp());
-  FlutterNativeSplash.remove();
 }
 
 class MyApp extends StatefulWidget {
@@ -173,10 +166,8 @@ class _MyAppState extends State<MyApp> {
           focusedBorder: InputBorder.none,
           filled: true,
           fillColor: kMuted,
-          hintStyle: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: kPrimary),
+          hintStyle:
+              Theme.of(context).textTheme.bodyMedium?.copyWith(color: kPrimary),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
