@@ -13,7 +13,8 @@ class GoPaths {
   static const String questionnaireView = '/questionnaireView';
   static const String resultView = '/resultView';
 
-
   static const String practicesQuestionScreen = '/practicesQuestionScreen';
+
+  static const String followsView = '/followsView';
 
 }

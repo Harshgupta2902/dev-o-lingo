@@ -28,43 +28,86 @@ class UserProfileModel {
 }
 
 class Data {
-  String? jwtToken;
-  User? user;
-  Stats? stats;
-  int? lessonsCompleted;
-  List<Achievement>? achievements;
-
   Data({
-    this.jwtToken,
     this.user,
     this.stats,
     this.lessonsCompleted,
     this.achievements,
+    this.followers,
+    this.following,
+    this.notFollowedUsers,
   });
 
   Data.fromJson(dynamic json) {
-    jwtToken = json['jwtToken'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
     stats = json['stats'] != null ? Stats.fromJson(json['stats']) : null;
-    lessonsCompleted = json['lessonsCompleted'] is int
-        ? json['lessonsCompleted']
-        : int.tryParse('${json['lessonsCompleted'] ?? 0}');
+    lessonsCompleted = json['lessonsCompleted'];
     if (json['achievements'] != null) {
-      achievements = (json['achievements'] as List)
-          .map((e) => Achievement.fromJson(e))
-          .toList();
+      achievements = [];
+      json['achievements'].forEach((v) {
+        achievements?.add(Achievements.fromJson(v));
+      });
+    }
+    followers = json['followers'];
+    following = json['following'];
+    if (json['notFollowedUsers'] != null) {
+      notFollowedUsers = [];
+      json['notFollowedUsers'].forEach((v) {
+        notFollowedUsers?.add(NotFollowedUsers.fromJson(v));
+      });
     }
   }
+  User? user;
+  Stats? stats;
+  num? lessonsCompleted;
+  List<Achievements>? achievements;
+  num? followers;
+  num? following;
+  List<NotFollowedUsers>? notFollowedUsers;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['jwtToken'] = jwtToken;
-    if (user != null) map['user'] = user!.toJson();
-    if (stats != null) map['stats'] = stats!.toJson();
+    if (user != null) {
+      map['user'] = user?.toJson();
+    }
+    if (stats != null) {
+      map['stats'] = stats?.toJson();
+    }
     map['lessonsCompleted'] = lessonsCompleted;
     if (achievements != null) {
-      map['achievements'] = achievements!.map((e) => e.toJson()).toList();
+      map['achievements'] = achievements?.map((v) => v.toJson()).toList();
     }
+    map['followers'] = followers;
+    map['following'] = following;
+    if (notFollowedUsers != null) {
+      map['notFollowedUsers'] =
+          notFollowedUsers?.map((v) => v.toJson()).toList();
+    }
+    return map;
+  }
+}
+
+class NotFollowedUsers {
+  NotFollowedUsers({
+    this.id,
+    this.name,
+    this.profile,
+  });
+
+  NotFollowedUsers.fromJson(dynamic json) {
+    id = json['id'];
+    name = json['name'];
+    profile = json['profile'];
+  }
+  num? id;
+  String? name;
+  String? profile;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['id'] = id;
+    map['name'] = name;
+    map['profile'] = profile;
     return map;
   }
 }
@@ -147,14 +190,14 @@ class User {
   }
 }
 
-class Achievement {
+class Achievements {
   int? id;
   String? title;
   String? description;
   String? iconUrl;
   String? achievedAt;
 
-  Achievement({
+  Achievements({
     this.id,
     this.title,
     this.description,
@@ -162,7 +205,7 @@ class Achievement {
     this.achievedAt,
   });
 
-  Achievement.fromJson(dynamic json) {
+  Achievements.fromJson(dynamic json) {
     id = json['id'];
     title = json['title'];
     description = json['description'];

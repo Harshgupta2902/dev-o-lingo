@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lingolearn/home_module/view/daily_practise_view.dart';
 import 'package:lingolearn/home_module/view/dashboard_view.dart';
+import 'package:lingolearn/home_module/view/follows_screen.dart';
 import 'package:lingolearn/home_module/view/landing_view.dart';
 import 'package:lingolearn/home_module/view/leaderboard_view.dart';
 import 'package:lingolearn/home_module/view/practice_quiz_screen.dart';
@@ -142,6 +143,17 @@ final GoRouter goRouterConfig = GoRouter(
           logs: logs,
           data: data,
         );
+      },
+    ),
+
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.followsView,
+      name: GoPaths.followsView,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final type = extras['type'];
+        return FollowsScreen(type: type);
       },
     ),
   ],

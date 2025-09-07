@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
+import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
+import 'package:lingolearn/home_module/view/follows_screen.dart';
 import 'package:lingolearn/utilities/common/core_app_bar.dart';
+import 'package:lingolearn/utilities/navigation/go_paths.dart';
+import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 final profileController = Get.put(ProfileController());
+final socialController = Get.put(SocialController());
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -53,12 +58,77 @@ class _AccountScreenState extends State<AccountScreen> {
                   const SizedBox(height: 32),
                   _buildStatisticsSection(state),
                   const SizedBox(height: 20),
+                  _buildSuggestionsSection(state?.data?.notFollowedUsers ?? []),
+                  const SizedBox(height: 20),
                 ],
               ),
             );
           },
           onLoading: const AccountSkeleton(),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSuggestionsSection(List<NotFollowedUsers> users) {
+    if (users.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          height: 100,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: kBorder),
+          ),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.group_outlined, color: kMuted, size: 28),
+              SizedBox(height: 6),
+              Text(
+                'No suggestions right now',
+                style: TextStyle(color: kMuted, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'People to follow',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: kOnSurface,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 150,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: users.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, i) {
+                final u = users[i];
+                return _UserSuggestCard(
+                  name: u.name ?? 'User',
+                  avatar: u.profile ?? '',
+                  id: u.id.toString() ?? "",
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -122,11 +192,35 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Expanded(
-                  child: _MiniStat(number: '40', label: 'Followers')),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    MyNavigator.pushNamed(
+                      GoPaths.followsView,
+                      extra: {'type': FollowsType.followers},
+                    );
+                  },
+                  child: _MiniStat(
+                    number: state?.data?.followers?.toString() ?? "",
+                    label: 'Followers',
+                  ),
+                ),
+              ),
               _buildDivider(),
-              const Expanded(
-                  child: _MiniStat(number: '52', label: 'Following')),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    MyNavigator.pushNamed(
+                      GoPaths.followsView,
+                      extra: {'type': FollowsType.following},
+                    );
+                  },
+                  child: _MiniStat(
+                    number: state?.data?.following?.toString() ?? "",
+                    label: 'Following',
+                  ),
+                ),
+              ),
             ],
           ),
         ],
@@ -143,7 +237,7 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildAchievementsSection(List<Achievement> achievements) {
+  Widget _buildAchievementsSection(List<Achievements> achievements) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -214,8 +308,125 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 }
 
+class _UserSuggestCard extends StatefulWidget {
+  final String name;
+  final String avatar;
+  final String id;
+
+  const _UserSuggestCard({
+    required this.name,
+    required this.avatar,
+    required this.id,
+  });
+
+  @override
+  State<_UserSuggestCard> createState() => _UserSuggestCardState();
+}
+
+class _UserSuggestCardState extends State<_UserSuggestCard> {
+  bool isFollowing = false;
+  bool isLoading = false;
+
+  Future<void> _handleFollow() async {
+    setState(() => isLoading = true);
+
+    if (!isFollowing) {
+      final res = await socialController.followUser(widget.id);
+      if (res?['status'] == true) {
+        setState(() {
+          isFollowing = true;
+          profileController.state?.data?.following =
+              (profileController.state?.data?.following ?? 0) + 1;
+        });
+      }
+    } else {
+      final res = await socialController.unfollowUser(widget.id);
+      if (res?['status'] == true) {
+        setState(() {
+          isFollowing = false;
+          profileController.state?.data?.following =
+              (profileController.state?.data?.following ?? 0) - 1;
+        });
+      }
+    }
+    profileController.update();
+
+    setState(() => isLoading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 26,
+            backgroundImage:
+                (widget.avatar.isNotEmpty) ? NetworkImage(widget.avatar) : null,
+            backgroundColor: kBorder,
+            child: widget.avatar.isEmpty
+                ? const Icon(Icons.person_rounded, color: kMuted)
+                : null,
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Text(
+              widget.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: kOnSurface,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: isLoading ? null : _handleFollow,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isFollowing ? Colors.grey.shade300 : Colors.blueAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      isFollowing ? 'Following' : 'Follow',
+                      style: TextStyle(
+                        color: isFollowing ? Colors.black : Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AchievementStrip extends StatelessWidget {
-  final List<Achievement> items;
+  final List<Achievements> items;
 
   const _AchievementStrip({required this.items});
 

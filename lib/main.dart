@@ -25,7 +25,7 @@ final userStatsController = Get.put(UserStatsController());
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  CoreNotificationService().onNotificationClicked(payload: message.data);
+  await CoreNotificationService.createNotification(message);
 }
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -34,6 +34,9 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   if (Platform.isAndroid) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -43,7 +46,15 @@ void main() async {
         projectId: "lingolearn-d228a",
       ),
     );
+  } else {
+    await Firebase.initializeApp();
   }
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -66,27 +77,24 @@ void main() async {
     CrashlyticsService().init();
   }
   FirebaseAnalytics.instance;
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  FirebaseAnalyticsService().init("");
+
   FirebaseMessaging.onMessageOpenedApp.listen((message) {
     try {
-      final Map payload = message.data;
-      CoreNotificationService().onNotificationClicked(payload: payload);
+      CoreNotificationService().onNotificationClicked(payload: message.data);
     } catch (e) {
-      log("onDidReceiveNotificationResponse error $e");
+      log("onMessageOpenedApp error $e");
     }
   });
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     try {
-      CoreNotificationService().onNotificationClicked(payload: message.data);
-      (message.data);
+      await CoreNotificationService.createNotification(message);
     } catch (e) {
       log("onMessage error $e");
     }
   });
 
-  if (getJwtToken() != null || getJwtToken() != "") {
+  if (getJwtToken() != null && getJwtToken() != "") {
     await languageController.getLanguageData();
     userStatsController.getUserStats();
   }
