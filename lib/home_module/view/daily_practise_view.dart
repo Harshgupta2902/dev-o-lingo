@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:lingolearn/home_module/controller/daily_practise_controller.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
+import 'package:lingolearn/utilities/skeleton/practise_list_skeleton.dart';
 
 final dailyPractiseController = Get.put(DailyPractiseController());
 
@@ -31,22 +32,18 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: SizedBox(height: kToolbarHeight),
-      ),
-      body: RefreshIndicator(
+    return SafeArea(
+      top: true,
+      child: RefreshIndicator(
         onRefresh: _refresh,
         child: dailyPractiseController.obx(
-          // ===== SUCCESS UI =====
           (state) {
             final data = state?.practices ?? [];
             if (data.isEmpty) {
               return const Center(child: Text('No practices scheduled yet.'));
             }
             return ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
               itemCount: data.length,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (context, i) => PracticeTile(
@@ -55,9 +52,7 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
               ),
             );
           },
-
-          // ===== OPTIONAL STATES =====
-          onLoading: const Center(child: CircularProgressIndicator()),
+          onLoading: const PracticeListShimmer(),
           onEmpty: const Center(child: Text('No practices scheduled yet.')),
           onError: (err) => Center(
             child: Padding(
@@ -99,8 +94,7 @@ class PracticeTile extends StatefulWidget {
 class _PracticeTileState extends State<PracticeTile> {
   Timer? _ticker;
   Duration _remaining = Duration.zero;
-  String _label = ''; // "Ends in" / "Starts in"
-  DateTime? _target; // countdown target
+  DateTime? _target; // countdown target (available only)
 
   @override
   void initState() {
@@ -124,65 +118,40 @@ class _PracticeTileState extends State<PracticeTile> {
   }
 
   // Helpers
-  DateTime _startOfDay(DateTime d) => DateTime(d.year, d.month, d.day, 0, 0, 0);
-
   DateTime _endOfDay(DateTime d) =>
       DateTime(d.year, d.month, d.day, 23, 59, 59);
 
   void _computeTargetAndStart() {
     _ticker?.cancel();
 
-    final now = DateTime.now();
-    // item.date is "YYYY-MM-DD"
-    DateTime date;
-    try {
-      date = DateTime.parse('${widget.item.date}T00:00:00.000');
-    } catch (_) {
-      date = now;
-    }
-
+    // Only run countdown for AVAILABLE
     if (widget.item.status == 'available') {
-      _label = 'Ends in';
-      _target = _endOfDay(now); // today end
-    } else if (widget.item.status == 'locked') {
-      _label = 'Starts in';
-      _target = _startOfDay(date); // day start
-    } else {
-      _label = '';
-      _target = null;
-    }
-
-    if (_target != null) {
+      final now = DateTime.now();
+      _target = _endOfDay(now); // ends today
       _tick(); // initial compute
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     } else {
+      _target = null;
       setState(() => _remaining = Duration.zero);
     }
   }
 
   void _tick() {
+    if (_target == null) return;
     final now = DateTime.now();
     final diff = _target!.difference(now);
     setState(() => _remaining = diff.isNegative ? Duration.zero : diff);
   }
 
-  String _fmtDur(Duration d, {bool showDays = true}) {
-    int days = d.inDays;
-    int hours = d.inHours % 24;
-    int minutes = d.inMinutes % 60;
-    int seconds = d.inSeconds % 60;
-
-    if (showDays && days > 0) {
-      return '${days}d ${hours.toString().padLeft(2, '0')}:'
-          '${minutes.toString().padLeft(2, '0')}:'
-          '${seconds.toString().padLeft(2, '0')}';
-    }
-    return '${hours.toString().padLeft(2, '0')}:'
-        '${minutes.toString().padLeft(2, '0')}:'
-        '${seconds.toString().padLeft(2, '0')}';
+  String _fmtDur(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes % 60;
+    final s = d.inSeconds % 60;
+    return '${h.toString().padLeft(2, '0')}:'
+        '${m.toString().padLeft(2, '0')}:'
+        '${s.toString().padLeft(2, '0')}';
   }
 
-  // UI helpers copied from your previous tile
   String _prettyDate(String ymd) {
     try {
       final dt = DateTime.parse('${ymd}T00:00:00.000');
@@ -247,8 +216,7 @@ class _PracticeTileState extends State<PracticeTile> {
     final chipColor = _chipColor(context);
     final chipBorder = _chipBorder(context);
 
-    final showCountdown = _target != null && _label.isNotEmpty;
-    final showDays = widget.item.status == 'locked'; // locked: show day part
+    final showCountdown = widget.item.status == 'available' && _target != null;
 
     return Material(
       color: Colors.transparent,
@@ -347,7 +315,7 @@ class _PracticeTileState extends State<PracticeTile> {
                         ),
                         const SizedBox(height: 8),
 
-                        // stats row (wrap to avoid overflow)
+                        // stats
                         Wrap(
                           spacing: 10,
                           runSpacing: 6,
@@ -359,34 +327,18 @@ class _PracticeTileState extends State<PracticeTile> {
                                 fontSize: 12,
                               ),
                             ),
-                            const Text(
-                              '•',
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              'XP ${item.earnedXp}',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 12,
-                              ),
-                            ),
-                            Text(
-                              'Gems ${item.earnedGems}',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 12,
-                              ),
-                            ),
-                            if (item.completedAtAgo != null)
-                              Text(
-                                'Completed ${item.completedAtAgo}',
+                            const Text('•', style: TextStyle(fontSize: 12)),
+                            Text('XP ${item.earnedXp}',
                                 style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                ),
-                              ),
+                                    color: Colors.grey.shade700, fontSize: 12)),
+                            Text('Gems ${item.earnedGems}',
+                                style: TextStyle(
+                                    color: Colors.grey.shade700, fontSize: 12)),
+                            if (item.completedAtAgo != null)
+                              Text('Completed ${item.completedAtAgo}',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12)),
                           ],
                         ),
                       ],
@@ -397,7 +349,8 @@ class _PracticeTileState extends State<PracticeTile> {
 
               const SizedBox(height: 12),
 
-              if (_ctaText().toLowerCase() != "completed")
+              // SHOW CTA + COUNTDOWN **ONLY** WHEN AVAILABLE
+              if (widget.item.status == 'available')
                 Row(
                   children: [
                     if (showCountdown)
@@ -411,45 +364,27 @@ class _PracticeTileState extends State<PracticeTile> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.grey.shade300),
                           ),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isNarrow = constraints.maxWidth < 220;
-                              final labelText = isNarrow
-                                  ? (widget.item.status == 'locked'
-                                      ? 'Starts'
-                                      : 'Ends')
-                                  : (widget.item.status == 'locked'
-                                      ? 'Starts in'
-                                      : 'Ends in');
-
-                              return FittedBox(
-                                fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      widget.item.status == 'locked'
-                                          ? Icons.hourglass_bottom_rounded
-                                          : Icons.timer_rounded,
-                                      size: 16,
-                                      color: Colors.grey.shade800,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '$labelText ${_fmtDur(_remaining, showDays: showDays)}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.grey.shade800,
-                                      ),
-                                    ),
-                                  ],
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.timer_rounded,
+                                    size: 16, color: Colors.grey.shade800),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Ends in ${_fmtDur(_remaining)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.grey.shade800,
+                                  ),
                                 ),
-                              );
-                            },
+                              ],
+                            ),
                           ),
                         ),
                       )
@@ -459,8 +394,9 @@ class _PracticeTileState extends State<PracticeTile> {
                     ConstrainedBox(
                       constraints: const BoxConstraints(minWidth: 160),
                       child: ElevatedButton(
-                        onPressed:
-                            _ctaEnabled ? () => widget.onOpen(item) : null,
+                        onPressed: _ctaEnabled
+                            ? () => widget.onOpen(widget.item)
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
                               _ctaEnabled ? Colors.black : Colors.grey.shade300,
@@ -471,7 +407,7 @@ class _PracticeTileState extends State<PracticeTile> {
                               borderRadius: BorderRadius.circular(12)),
                           textStyle:
                               const TextStyle(fontWeight: FontWeight.w700),
-                          minimumSize: const Size(0, 40), // height clamp
+                          minimumSize: const Size(0, 40),
                         ),
                         child: Text(
                           _ctaText(),
@@ -481,7 +417,7 @@ class _PracticeTileState extends State<PracticeTile> {
                       ),
                     ),
                   ],
-                )
+                ),
             ],
           ),
         ),
