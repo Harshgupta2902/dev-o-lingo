@@ -60,14 +60,18 @@ class CoreNotificationService {
     // Initialize click handler
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse details) {
-        try {
-          final payload = details.payload;
-          if (payload == null || payload.isEmpty) return;
+      onDidReceiveNotificationResponse: (NotificationResponse details) async {
+        // Action button?
+        if (details.actionId == 'DISMISS_ACTION') {
+          if (details.id != null) {
+            await CoreNotificationService.cancel(details.id!);
+          }
+          return;
+        }
+        final payload = details.payload;
+        if (payload != null && payload.isNotEmpty) {
           final Map map = json.decode(payload);
           onNotificationClicked(payload: map);
-        } catch (e) {
-          log("onDidReceiveNotificationResponse error $e");
         }
       },
     );
@@ -174,19 +178,12 @@ class CoreNotificationService {
     await _firebaseMessaging.requestPermission();
     final token = await _firebaseMessaging.getToken();
     if (token == null) return;
-
     setFCMToken(token);
-
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-      authController.updateFCMToken(getEmailId(), getUuid(), newToken);
-      setFCMToken(newToken);
-      log("🔄 Token rotated automatically: $newToken");
-    });
+    authController.updateFCMToken(getEmailId(), getUuid(), token);
   }
 
   /// ---- helpers ----
   static String? _extractImageUrl(RemoteMessage m) {
-    // FCM supports 'image' inside notification for Android; many backends also send 'image'/'imageUrl' inside data.
     final nImage =
         m.notification?.android?.imageUrl ?? m.notification?.apple?.imageUrl;
     final dImage = m.data['image'] ??
@@ -207,5 +204,75 @@ class CoreNotificationService {
     await dio.download(url, savePath,
         options: Options(responseType: ResponseType.bytes));
     return savePath;
+  }
+
+  /// Show a LIVE countdown notification on Android till [targetTime].
+  /// Example: targetTime = now + 2 hours
+  static Future<int> showCountdownNotification({
+    required DateTime targetTime,
+    String title = "Test starts soon",
+    String bodyPrefix = "Your test begins in",
+    int? id,
+  }) async {
+    final notifId = id ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+    final android = AndroidNotificationDetails(
+      'pushnotification',
+      'App Notifications',
+      channelDescription: 'General notifications for Dev-O-Lingo',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: false, // hide default timestamp
+      usesChronometer: true, // show chronometer
+      chronometerCountDown: true, // make it count DOWN to 'when'
+      when: targetTime.millisecondsSinceEpoch,
+      category: AndroidNotificationCategory.reminder,
+      ongoing: false,
+      autoCancel: false,
+      actions: <AndroidNotificationAction>[
+        const AndroidNotificationAction(
+          'DISMISS_ACTION',
+          'Dismiss',
+          showsUserInterface: false, // no UI, just handle in callback
+          cancelNotification: true, // auto-cancel this notification
+        ),
+      ],
+      icon: '@mipmap/ic_notification',
+    );
+
+    const ios = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      // iOS DOES NOT support live countdown with this plugin; it will just show the text.
+    );
+
+    final details = NotificationDetails(android: android, iOS: ios);
+
+    await flutterLocalNotificationsPlugin.show(
+      notifId,
+      title,
+      "$bodyPrefix ${_humanizeRemaining(targetTime)}",
+      details,
+      payload:
+          '{"type":"countdown","target":"${targetTime.toIso8601String()}"}',
+    );
+
+    return notifId;
+  }
+
+  static Future<void> cancel(int id) async {
+    await flutterLocalNotificationsPlugin.cancel(id);
+  }
+
+  static String _humanizeRemaining(DateTime target) {
+    final diff = target.difference(DateTime.now());
+    if (diff.isNegative) return "0s";
+    final h = diff.inHours;
+    final m = diff.inMinutes.remainder(60);
+    final s = diff.inSeconds.remainder(60);
+    if (h > 0) return "${h}h ${m}m";
+    if (m > 0) return "${m}m";
+    return "${s}s";
   }
 }

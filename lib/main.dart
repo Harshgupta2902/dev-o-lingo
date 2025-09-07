@@ -23,9 +23,50 @@ final languageController = Get.put(LanguageController());
 final userStatsController = Get.put(UserStatsController());
 
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage m) async {
   await Firebase.initializeApp();
-  await CoreNotificationService.createNotification(message);
+
+  try {
+    // LOGGING (optional)
+    log("BG FCM DATA => ${m.data}");
+
+    // 🟣 Countdown ko yahin handle karo
+    if (m.data['type'] == 'countdown') {
+      final targetMs = int.tryParse(m.data['targetEpochMs'] ?? '');
+      if (targetMs != null) {
+        final id = await CoreNotificationService.showCountdownNotification(
+          targetTime: DateTime.fromMillisecondsSinceEpoch(targetMs),
+          title: m.data['title'] ?? "Test Reminder",
+          bodyPrefix: m.data['bodyPrefix'] ?? "Your test begins in",
+        );
+
+        // Auto-dismiss at start + "Test started"
+        final target = DateTime.fromMillisecondsSinceEpoch(targetMs);
+        final wait = target.difference(DateTime.now());
+        if (!wait.isNegative) {
+          Timer(wait, () async {
+            await CoreNotificationService.cancel(id);
+            await CoreNotificationService.createNotification(
+              RemoteMessage.fromMap({
+                "data": {
+                  "title": "Test started",
+                  "body": "All the best!",
+                  "path": "/test/start",
+                  "arguments": "{}"
+                }
+              }),
+            );
+          });
+        }
+      }
+      return;
+    }
+
+    // 🔵 Normal notifications fallback
+    await CoreNotificationService.createNotification(m, fromBackground: true);
+  } catch (e) {
+    log("BG handler error: $e");
+  }
 }
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -86,12 +127,39 @@ void main() async {
     }
   });
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-    try {
-      await CoreNotificationService.createNotification(message);
-    } catch (e) {
-      log("onMessage error $e");
+  FirebaseMessaging.onMessage.listen((RemoteMessage m) async {
+    if (m.data['type'] == 'countdown') {
+      final targetMs = int.tryParse(m.data['targetEpochMs'] ?? '');
+      if (targetMs != null) {
+        final notifId = await CoreNotificationService.showCountdownNotification(
+          targetTime: DateTime.fromMillisecondsSinceEpoch(targetMs),
+          title: m.data['title'] ?? "Test Reminder",
+          bodyPrefix: m.data['bodyPrefix'] ?? "Your test begins in",
+        );
+
+        final target = DateTime.fromMillisecondsSinceEpoch(targetMs);
+        final wait = target.difference(DateTime.now());
+        if (!wait.isNegative) return;
+
+        Timer(wait, () async {
+          await CoreNotificationService.cancel(notifId);
+          await CoreNotificationService.createNotification(
+            RemoteMessage.fromMap({
+              "data": {
+                "title": "Test started",
+                "body": "All the best!",
+                "path": "/test/start",
+                "arguments": "{}"
+              }
+            }),
+          );
+        });
+      }
+      return;
     }
+
+    // fallback for normal messages
+    await CoreNotificationService.createNotification(m);
   });
 
   if (getJwtToken() != null && getJwtToken() != "") {
