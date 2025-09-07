@@ -6,6 +6,7 @@ import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
+import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 // {correctCount: 1, wrongCount: 7, earnedXP: 4, earnedGems: 1, heartsLeft: 0, percentage: 13, tagline: {title: 💪 Don’t give up! Try again!, desc: ⚡ Lightning fast!}, time: 0:09}
 
@@ -158,29 +159,40 @@ class _ResultScreenState extends State<ResultScreen>
 
               const Spacer(),
 
-              // Continue button
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () async {
-                      await languageController.getLanguageData();
-                      MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
-                    },
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(56),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await languageController.getLanguageData();
+                    MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text(
-                      "CONTINUE",
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800, letterSpacing: 0.5),
-                    ),
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Continue Learning",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 20),
+                    ],
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),

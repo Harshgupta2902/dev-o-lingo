@@ -21,4 +21,6 @@ class APIEndPoints {
   static const getDailyPractiseTest = "daily-practice/week";
   static const getPractiseTest = "get-daily-practice";
   static const submitDailyPractice = "daily-practice/submit";
+
+  static const getLeaderboard = "getLeaderboard";
 }
