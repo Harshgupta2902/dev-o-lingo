@@ -134,37 +134,6 @@ class _ExerciseViewState extends State<ExerciseView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kSurface,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        foregroundColor: kOnSurface,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: kSurface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              size: 18,
-            ),
-          ),
-        ),
-        title: Text(
-          exerciseController.state?.data?.exercise?.title ?? "Exercise Details",
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: kOnSurface,
-          ),
-        ),
-        centerTitle: false,
-      ),
       body: exerciseController.obx(
         (state) {
           final data = state?.data?.exercise;
@@ -173,6 +142,7 @@ class _ExerciseViewState extends State<ExerciseView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 40),
                 // Header Section
                 Container(
                   width: double.infinity,
