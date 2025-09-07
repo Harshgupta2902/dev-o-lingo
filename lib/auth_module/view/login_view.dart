@@ -69,7 +69,7 @@ class _LoginViewState extends State<LoginView> {
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryColor,
+                    color: kPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),

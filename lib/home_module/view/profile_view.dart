@@ -1,18 +1,11 @@
-// account_screen.dart
-// ignore_for_file: deprecated_member_use, prefer_const_declarations
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lingolearn/auth_module/view/onboarding_view.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
-import 'package:lingolearn/utilities/firebase/core_prefs.dart';
+import 'package:lingolearn/home_module/models/user_profile_model.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
+import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 final profileController = Get.put(ProfileController());
-
-const Color kPrimary = Color(0xFF6C5CE7);
-const Color kMuted = Color(0xFF6B7280);
-const Color kAccentGreen = Color(0xFF16A34A);
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -32,75 +25,288 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return profileController.obx((state) {
-      return SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 8),
-              _buildAvatar(state?.data?.user?.profile ?? ""),
-              const SizedBox(height: 12),
-              Text(
-                state?.data?.user?.name ?? "User",
-                textAlign: TextAlign.center,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+    return profileController.obx(
+      (state) {
+        return Scaffold(
+          backgroundColor: kSurface,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _buildProfileHeader(state),
+                  const SizedBox(height: 32),
+                  _buildAchievementsSection(state?.data?.achievements ?? []),
+                  const SizedBox(height: 32),
+                  _buildStatisticsSection(state),
+                  const SizedBox(height: 20),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                "Joined Since ${state?.data?.user?.createdAt ?? "2025"}",
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: kMuted,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildTopCountRow(40, 50, state?.data?.stats?.xp ?? 0),
-              const SizedBox(height: 16),
-              const _SectionHeader(
-                title: 'Your Statistics',
-                trailing: Icon(
-                  Icons.insights,
-                  size: 20,
-                  color: kAccentGreen,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const _StatsGrid(),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
-        ),
-      );
-    }, onLoading: const AccountSkeleton());
-  }
-
-  _buildAvatar(String url) {
-    return CircleAvatar(
-      radius: 44,
-      backgroundImage: NetworkImage(url),
-      backgroundColor: Colors.grey.shade200,
+        );
+      },
+      onLoading: const AccountSkeleton(),
     );
   }
 
-  _buildTopCountRow(int followers, int following, int xp) {
-    return Row(
+  Widget _buildProfileHeader(UserProfileModel? state) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: kPrimary.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              radius: 50,
+              backgroundImage: NetworkImage(state?.data?.user?.profile ?? ""),
+              backgroundColor: kBorder,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            state?.data?.user?.name ?? "User",
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: kOnSurface,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Member since ${state?.data?.user?.createdAt ?? "2025"}",
+            style: const TextStyle(
+              fontSize: 14,
+              color: kMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: kBorder),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                  child: _MiniStat(number: '40', label: 'Followers')),
+              _buildDivider(),
+              const Expanded(
+                  child: _MiniStat(number: '52', label: 'Following')),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 40,
+      width: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      color: kBorder,
+    );
+  }
+
+  Widget _buildAchievementsSection(List<Achievement> achievements) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _MiniStat(number: '$followers', label: 'followers'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Achievements',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: kOnSurface,
+                letterSpacing: -0.5,
+              ),
+            ),
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                foregroundColor: kPrimary,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              child: const Text(
+                'View all',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
         ),
-        const _VerticalDivider(),
-        Expanded(
-          child: _MiniStat(number: '$following', label: 'following'),
-        ),
-        const _VerticalDivider(),
-        Expanded(
-          child: _MiniStat(number: '$xp', label: 'lifetime XP'),
-        ),
+        _AchievementStrip(items: achievements),
       ],
+    );
+  }
+
+  Widget _buildStatisticsSection(UserProfileModel? state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Text(
+              'Statistics',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: kOnSurface,
+                letterSpacing: -0.5,
+              ),
+            ),
+            SizedBox(width: 8),
+            Icon(
+              Icons.trending_up_rounded,
+              size: 24,
+              color: kAccent,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        StatsGrid(state: state),
+      ],
+    );
+  }
+}
+
+class _AchievementStrip extends StatelessWidget {
+  final List<Achievement> items;
+
+  const _AchievementStrip({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return Container(
+        height: 100,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: kBorder),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.emoji_events_outlined, color: kMuted, size: 32),
+            SizedBox(height: 8),
+            Text(
+              'No achievements yet',
+              style: TextStyle(color: kMuted, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 90,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, i) {
+          final achievement = items[i];
+          return Container(
+            width: 240,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        kPrimary.withOpacity(0.1),
+                        kSecondary.withOpacity(0.1)
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: achievement.iconUrl != null &&
+                          achievement.iconUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(achievement.iconUrl!,
+                              fit: BoxFit.cover),
+                        )
+                      : const Icon(Icons.emoji_events_rounded,
+                          color: kPrimary, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        achievement.title ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: kOnSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        achievement.description ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: kMuted,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -113,108 +319,64 @@ class _MiniStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       children: [
         Text(
           number,
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: const TextStyle(
+            fontSize: 20,
             fontWeight: FontWeight.w700,
+            color: kOnSurface,
           ),
         ),
-        const SizedBox(height: 2),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(color: kMuted),
+          style: const TextStyle(
+            fontSize: 12,
+            color: kMuted,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
   }
 }
 
-class _VerticalDivider extends StatelessWidget {
-  const _VerticalDivider();
+class StatsGrid extends StatelessWidget {
+  const StatsGrid({super.key, this.state});
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 32,
-      child: VerticalDivider(
-        width: 24,
-        thickness: 1,
-        color: Colors.grey.shade300,
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final Widget? trailing;
-
-  const _SectionHeader({required this.title, this.trailing});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        if (trailing != null) ...[
-          const SizedBox(width: 8),
-          trailing!,
-        ]
-      ],
-    );
-  }
-}
-
-class _StatsGrid extends StatelessWidget {
-  const _StatsGrid();
+  final UserProfileModel? state;
 
   @override
   Widget build(BuildContext context) {
     final cards = <_StatCardData>[
       _StatCardData(
-        icon: Icons.local_fire_department_outlined,
-        iconColor: Colors.orange,
-        value: '127',
-        label: 'Challenges',
+        icon: Icons.local_fire_department_rounded,
+        iconColor: const Color(0xFFEF4444),
+        backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
+        value: "${state?.data?.stats?.streak ?? 0}",
+        label: 'Day Streak',
       ),
       _StatCardData(
-        icon: Icons.calendar_month_outlined,
-        iconColor: Colors.pink,
-        value: '458',
-        label: 'Lessons Passed',
+        icon: Icons.school_rounded,
+        iconColor: const Color(0xFF8B5CF6),
+        backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.1),
+        value: "${state?.data?.lessonsCompleted ?? 0}",
+        label: 'Lessons',
       ),
       _StatCardData(
-        icon: Icons.diamond_outlined,
-        iconColor: Colors.blue,
-        value: '957',
-        label: 'Total Diamonds',
+        icon: Icons.diamond_rounded,
+        iconColor: const Color(0xFF06B6D4),
+        backgroundColor: const Color(0xFF06B6D4).withOpacity(0.1),
+        value: "${state?.data?.stats?.gems ?? 0}",
+        label: 'Diamonds',
       ),
       _StatCardData(
-        icon: Icons.bolt_outlined,
-        iconColor: Colors.amber,
-        value: '15,274',
-        label: 'Total Lifetime XP',
-      ),
-      _StatCardData(
-        icon: Icons.track_changes,
-        iconColor: Colors.redAccent,
-        value: '289',
-        label: 'Correct Practices',
-      ),
-      _StatCardData(
-        icon: Icons.emoji_events_outlined,
-        iconColor: Colors.teal,
-        value: '36',
-        label: 'Top 3 Positions',
+        icon: Icons.bolt_rounded,
+        iconColor: const Color(0xFFF59E0B),
+        backgroundColor: const Color(0xFFF59E0B).withOpacity(0.1),
+        value: "${state?.data?.stats?.xp ?? 0}",
+        label: 'Total XP',
       ),
     ];
 
@@ -224,7 +386,7 @@ class _StatsGrid extends StatelessWidget {
       itemCount: cards.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisExtent: 70,
+        mainAxisExtent: 80,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -236,12 +398,14 @@ class _StatsGrid extends StatelessWidget {
 class _StatCardData {
   final IconData icon;
   final Color iconColor;
+  final Color backgroundColor;
   final String value;
   final String label;
 
   _StatCardData({
     required this.icon,
     required this.iconColor,
+    required this.backgroundColor,
     required this.value,
     required this.label,
   });
@@ -257,20 +421,26 @@ class _StatCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: data.iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: data.backgroundColor,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(data.icon, color: data.iconColor),
+            child: Icon(data.icon, color: data.iconColor, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -280,19 +450,22 @@ class _StatCard extends StatelessWidget {
               children: [
                 Text(
                   data.value,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: kOnSurface,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   data.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: kMuted),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: kMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),

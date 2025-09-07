@@ -38,12 +38,15 @@ class CoreAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: titleWidget ??
           Text(
             title ?? "-",
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(fontWeight: FontWeight.w500),
           ),
       centerTitle: centerTitle ?? true,
       shape: showBorder == true
           ? const Border(
-              bottom: BorderSide(color: AppColors.silverChalice30),
+              bottom: BorderSide(color: kMuted),
             )
           : null,
       titleSpacing: 0,
@@ -58,7 +61,8 @@ class CoreAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           : GestureDetector(
-              onTap: () => _hiddenDrawerController.scaffoldKey.currentState?.openDrawer(),
+              onTap: () => _hiddenDrawerController.scaffoldKey.currentState
+                  ?.openDrawer(),
               child: Icon(
                 Icons.menu,
                 color: leadingColor ?? Colors.black,

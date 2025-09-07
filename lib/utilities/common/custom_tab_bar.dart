@@ -21,7 +21,7 @@ class CustomTabBar extends StatelessWidget {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: AppColors.alabaster,
+          color: kMuted,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
@@ -42,7 +42,7 @@ class CustomTabBar extends StatelessWidget {
           tabAlignment: TabAlignment.start,
           dividerColor: Colors.transparent,
           isScrollable: true,
-          unselectedLabelColor: AppColors.black,
+          unselectedLabelColor: Colors.black,
           labelColor: Colors.white,
           indicatorSize: TabBarIndicatorSize.tab,
           padding: const EdgeInsets.all(6),
@@ -51,7 +51,7 @@ class CustomTabBar extends StatelessWidget {
           splashFactory: NoSplash.splashFactory,
           indicator: BoxDecoration(
             borderRadius: BorderRadius.circular(30 - 4),
-            color: AppColors.black,
+            color: Colors.black,
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.4),
@@ -127,13 +127,13 @@ class CoreFlatTabBar extends StatelessWidget {
       indicatorSize: TabBarIndicatorSize.tab,
       physics: const BouncingScrollPhysics(),
       isScrollable: isScrollable,
-      unselectedLabelColor: AppColors.black,
+      unselectedLabelColor: Colors.black,
       labelColor: Colors.white,
       padding: const EdgeInsets.all(6),
       splashFactory: NoSplash.splashFactory,
       indicator: BoxDecoration(
         borderRadius: BorderRadius.circular(30 - 4),
-        color: AppColors.black,
+        color: Colors.black,
       ),
       tabs: List.generate(
         tabs.length,

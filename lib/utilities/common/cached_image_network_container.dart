@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lingolearn/utilities/constants/functions.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 
@@ -36,7 +35,7 @@ class CachedImageNetworkContainer extends StatelessWidget {
       decoration: decoration ??
           AppBoxDecoration.getBoxDecoration(
             showShadow: false,
-            color: color ?? AppColors.white,
+            color: color ?? Colors.white,
           ),
       child: url != null || url?.isNotEmpty == true
           ? CachedNetworkImage(
@@ -54,8 +53,11 @@ class CachedImageNetworkContainer extends StatelessWidget {
   }
 }
 
-Widget buildPlaceholder(
-    {required String? name, required BuildContext context, Color color = AppColors.primaryColor}) {
+Widget buildPlaceholder({
+  required String? name,
+  required BuildContext context,
+  Color color = kPrimary,
+}) {
   final initial = name?.isNotEmpty == true ? name![0] : '';
   return Center(
     child: Text(
@@ -65,7 +67,8 @@ Widget buildPlaceholder(
   );
 }
 
-Widget buildPlaceholderAsset({required String assetPath, BoxFit fit = BoxFit.fill}) {
+Widget buildPlaceholderAsset(
+    {required String assetPath, BoxFit fit = BoxFit.fill}) {
   return Image.asset(
     fit: fit,
     assetPath,
@@ -93,8 +96,4 @@ Widget buildPlaceholderIcon({required IconData icon}) {
       size: 30,
     ),
   );
-}
-
-Widget buildPlaceHolderGrowPath({required String assetPath}) {
-  return SvgPicture.asset(getLogoPath(assetPath));
 }

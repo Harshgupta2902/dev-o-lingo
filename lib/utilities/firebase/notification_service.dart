@@ -1,11 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
-import 'package:lingolearn/utilities/constants/functions.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
-import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 class CoreNotificationService {
   final _firebaseMessaging = FirebaseMessaging.instance;
@@ -42,31 +42,31 @@ class CoreNotificationService {
           final Map payload = json.decode(details.payload ?? "");
           onNotificationClicked(payload: payload);
         } catch (e) {
-          logger.e("onDidReceiveNotificationResponse error $e");
+          log("onDidReceiveNotificationResponse error $e");
         }
       },
     );
   }
 
   fcmListener({Function()? onTap}) {
-    logger.i("Notification Recieved => fcmListener  ");
-    logger.i("FCM TOKEN => ${getFCMToken()}  ");
+    log("Notification Recieved => fcmListener  ");
+    log("FCM TOKEN => ${getFCMToken()}  ");
 
     FirebaseMessaging.onMessage.listen(
       (RemoteMessage message) async {
-        logger.i("Notification Recieved => fcmListener > $message ");
-        logger.i("FCM TOKEN => ${getFCMToken()}  ");
+        log("Notification Recieved => fcmListener > $message ");
+        log("FCM TOKEN => ${getFCMToken()}  ");
         createNotification(message);
       },
     );
   }
 
   onNotificationClicked({required Map payload}) {
-    logger.e(payload);
+    log(payload.toString());
     if (payload.containsKey('path') && payload.containsKey('arguments')) {
       final arguments = json.decode(payload['arguments']);
-      logger.i(payload['path']);
-      logger.i(arguments);
+      log(payload['path']);
+      log(arguments);
 
       if (arguments == null) {
         return;
@@ -87,7 +87,7 @@ class CoreNotificationService {
           'pushnotification', 'pushnotification',
           importance: Importance.max,
           priority: Priority.high,
-          color: AppColors.white
+          color: Colors.white
           // styleInformation: BigPictureStyleInformation(DrawableResourceAndroidBitmap('ic_notification'), largeIcon:  DrawableResourceAndroidBitmap('ic_notification')),
           // largeIcon: DrawableResourceAndroidBitmap('mipmap/ic_launcher'),
           );
@@ -107,7 +107,7 @@ class CoreNotificationService {
         payload: json.encode(message.data),
       );
     } catch (error) {
-      logger.e("Notification Create Error $error");
+      log("Notification Create Error $error");
     }
   }
 
@@ -122,7 +122,7 @@ class CoreNotificationService {
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
       authController.updateFCMToken(getEmailId(), getUuid(), newToken);
       setFCMToken(newToken);
-      logger.i("🔄 Token rotated automatically: $newToken");
+      log("🔄 Token rotated automatically: $newToken");
     });
   }
 }

@@ -15,33 +15,33 @@ messageScaffold({
   Enum messageScaffoldType = MessageScaffoldType.success,
   bool isTop = false,
 }) {
-  Color backgroundColor = AppColors.whiteFrost;
-  Color mainColor = AppColors.primaryColor;
-  IconData stateIcon = Icons.info_outline;
+  Color backgroundColor = infoBackground;
+  Color mainColor = infoMain;
+  IconData stateIcon = Icons.info_outline_rounded;
 
   switch (messageScaffoldType) {
     case MessageScaffoldType.success:
-      backgroundColor = AppColors.hintOfGreen;
-      mainColor = AppColors.shareGreen;
-      stateIcon = Icons.check;
+      backgroundColor = successBackground;
+      mainColor = successMain;
+      stateIcon = Icons.check_circle_outline_rounded;
       break;
 
     case MessageScaffoldType.error:
-      mainColor = AppColors.red;
-      backgroundColor = AppColors.bgRed;
-      stateIcon = Icons.cancel_outlined;
+      backgroundColor = errorBackground;
+      mainColor = errorMain;
+      stateIcon = Icons.error_outline_rounded;
       break;
 
     case MessageScaffoldType.warning:
-      backgroundColor = AppColors.bgYellow;
-      mainColor = AppColors.yellow;
-      stateIcon = Icons.warning_amber;
+      backgroundColor = warningBackground;
+      mainColor = warningMain;
+      stateIcon = Icons.warning_amber_rounded;
       break;
 
     case MessageScaffoldType.information:
-      backgroundColor = AppColors.whiteFrost;
-      mainColor = AppColors.primaryColor;
-      stateIcon = Icons.info_outline;
+      backgroundColor = infoBackground;
+      mainColor = infoMain;
+      stateIcon = Icons.info_outline_rounded;
       break;
   }
 
@@ -49,27 +49,45 @@ messageScaffold({
     SnackBar(
       behavior: SnackBarBehavior.floating,
       backgroundColor: backgroundColor,
-      elevation: 2,
+      elevation: 0,
       closeIconColor: mainColor,
       showCloseIcon: true,
+      margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        side: BorderSide(color: mainColor, width: 0.4),
+        borderRadius: BorderRadius.circular(16.0),
+        side: BorderSide(color: mainColor.withOpacity(0.2), width: 1),
       ),
-      content: Row(
-        children: [
-          Icon(stateIcon, color: mainColor),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              content,
-              style: TextStyle(
+      content: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: mainColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                stateIcon,
                 color: mainColor,
-                fontSize: 14,
+                size: 18,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                content,
+                style: TextStyle(
+                  color: mainColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       duration: Duration(seconds: duration),
     ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,7 +12,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
-import 'package:lingolearn/utilities/constants/functions.dart';
 import 'package:lingolearn/utilities/firebase/analytics_service.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/firebase/crashlytics_service.dart';
@@ -76,7 +76,7 @@ void main() async {
       final Map payload = message.data;
       CoreNotificationService().onNotificationClicked(payload: payload);
     } catch (e) {
-      logger.e("onDidReceiveNotificationResponse error $e");
+      log("onDidReceiveNotificationResponse error $e");
     }
   });
 
@@ -85,7 +85,7 @@ void main() async {
       CoreNotificationService().onNotificationClicked(payload: message.data);
       (message.data);
     } catch (e) {
-      logger.e("onMessage error $e");
+      log("onMessage error $e");
     }
   });
 
@@ -143,8 +143,8 @@ class _MyAppState extends State<MyApp> {
       themeMode: ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.backgroundColor,
-        primaryColor: AppColors.primaryColor,
+        scaffoldBackgroundColor: kSurface,
+        primaryColor: kPrimary,
         fontFamily: 'Nunito',
         switchTheme: const SwitchThemeData(
           splashRadius: 0,
@@ -152,7 +152,7 @@ class _MyAppState extends State<MyApp> {
         popupMenuTheme: const PopupMenuThemeData(color: Colors.white),
         dividerColor: Colors.grey.shade400,
         bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: AppColors.white,
+          backgroundColor: Colors.white,
           shape: SmoothRectangleBorder(
             borderRadius: SmoothBorderRadius.vertical(
               top: SmoothRadius(cornerRadius: 16, cornerSmoothing: 1.0),
@@ -164,7 +164,7 @@ class _MyAppState extends State<MyApp> {
         ),
         sliderTheme: const SliderThemeData(
           activeTrackColor: Colors.green,
-          thumbColor: AppColors.white,
+          thumbColor: Colors.white,
         ),
         inputDecorationTheme: InputDecorationTheme(
           enabledBorder: InputBorder.none,
@@ -172,15 +172,15 @@ class _MyAppState extends State<MyApp> {
           disabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           filled: true,
-          fillColor: AppColors.whiteSmoke,
+          fillColor: kMuted,
           hintStyle: Theme.of(context)
               .textTheme
               .bodyMedium
-              ?.copyWith(color: AppColors.paleSky),
+              ?.copyWith(color: kPrimary),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.primaryColor,
+            foregroundColor: kPrimary,
             shape: SmoothRectangleBorder(
               borderRadius: SmoothBorderRadius(
                 cornerRadius: 10,
@@ -207,7 +207,7 @@ class _MyAppState extends State<MyApp> {
                 .textTheme
                 .labelLarge
                 ?.copyWith(letterSpacing: 0.15),
-            backgroundColor: AppColors.primaryColor,
+            backgroundColor: kPrimary,
           ),
         ),
       ),

@@ -1,48 +1,28 @@
 import 'package:flutter/material.dart';
 
-class AppColors {
-  static const backgroundColor = Color(0xFFF5F7FF);
-  static const white = Color(0xFFFFFFFF);
-  static const desertStorm = Color(0xFFF7F8F9);
-  static const alabaster = Color(0xFFF9FAFC);
-  static const whiteSmoke = Color(0xFFF3F6F9);
-  static const iron = Color(0xFFD0D5DD);
-  static const porcelain = Color(0xFFEDF3F6);
-  static const magnolia = Color(0xFFDBDCF3);
-  static const whiteFrost = Color(0xffD9E7FF);
+const Color kPrimary = Color(0xFF6366F1);
+const Color kSecondary = Color(0xFF8B5CF6);
+const Color kAccent = Color(0xFF10B981);
+const Color kSurface = Color(0xFFFAFAFA);
+const Color kOnSurface = Color(0xFF1F2937);
+const Color kMuted = Color(0xFF6B7280);
+const Color kBorder = Color(0xFFE5E7EB);
 
-  static const aluminium = Color(0xFFABAFB1);
-  static const paleSky = Color(0xFF6E717C);
-  static const silverChalice30 = Color(0x4DAAAAAA);
-  static const boulder = Color(0xFF777777);
-  static const shuttleGrey = Color(0xFF61677A);
-  static const lightGrey = Color(0xFFD9D9D9);
-  static const inputBorderColor = Color(0xFFACACAC);
-  static const darkTextColor = Color(0xFF4d4d4d);
-  static const lightTextColor = Color(0xFF6A6A6A);
+const Color successBackground = Color(0xFFF0FDF4);
+const Color successMain = Color(0xFF10B981);
 
-  static const primaryColor = Color(0xFF6949FF);
-  static const aliceBlue = Color(0xFFEFF6FF);
+const Color errorBackground = Color(0xFFFEF2F2);
+const Color errorMain = Color(0xFFEF4444);
 
-  // static const primaryColor = Color(0xFF98B9F2);
-  // static const blueBg = Color(0xFF6F9CEB);
+// Warning colors
+const Color warningBackground = Color(0xFFFFFBEB);
+const Color warningMain = Color(0xFFF59E0B);
 
-  static const black = Color(0xFF000000);
-  static const black04 = Color(0x0A1D1D1D);
-  static const onyx = Color(0xFF111111);
-  static const oil = Color(0xFF202020);
+// Information colors
+const Color infoBackground = Color(0xFFF0F9FF);
+const Color infoMain = Color(0xFF3B82F6);
 
-  static const mediumGreen = Color(0xFF00C036);
-
-  static const cadmiumRed = Color(0xFFE40721);
-
-  static const hintOfGreen = Color(0xFFDFFFE6);
-  static const shareGreen = Color(0xff137333);
-  static const red = Color(0xffE40721);
-  static const bgRed = Color(0xffFEF0F0);
-  static const yellow = Color(0xffF1A731);
-  static const bgYellow = Color(0xffFFF8EC);
-  static const redBg = Color(0xffFFDEDE);
-
-  static const androidGreen = Color(0xFF90C63A);
-}
+// Neutral colors
+const Color surface = Color(0xFFFAFAFA);
+const Color onSurface = Color(0xFF1F2937);
+const Color border = Color(0xFFE5E7EB);

@@ -8,7 +8,7 @@ class AppBoxShadow {
     const BoxShadow(
       offset: Offset(0, 4),
       blurRadius: 10,
-      color: AppColors.black04,
+      color: kMuted,
     )
   ];
 
@@ -16,7 +16,7 @@ class AppBoxShadow {
     const BoxShadow(
       offset: Offset(4, 8),
       blurRadius: 24,
-      color: AppColors.black04,
+      color: kMuted,
     )
   ];
 
@@ -24,7 +24,7 @@ class AppBoxShadow {
     BoxShadow(
       offset: const Offset(4, 8),
       blurRadius: 24,
-      color: AppColors.primaryColor.withOpacity(0.25),
+      color: kPrimary.withOpacity(0.25),
     )
   ];
 
@@ -32,7 +32,7 @@ class AppBoxShadow {
     BoxShadow(
       offset: Offset(0, 4),
       blurRadius: 10,
-      color: AppColors.black04,
+      color: kMuted,
     )
   ];
 }

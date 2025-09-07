@@ -245,12 +245,12 @@ class _OnBoardingViewState extends State<OnBoardingView>
                               vertical: 12, horizontal: 18),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primaryColor.withOpacity(0.1)
+                                ? kPrimary.withOpacity(0.1)
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.primaryColor
+                                  ? kPrimary
                                   : const Color(0xFFE2E8F0),
                               width: isSelected ? 3 : 2,
                             ),
