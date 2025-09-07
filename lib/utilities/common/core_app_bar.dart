@@ -1,82 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:lingolearn/utilities/common/drawer_controller.dart';
-import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 
-final _hiddenDrawerController = Get.put(HiddenDrawerController());
-
-class CoreAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final bool? showActions;
-  final String? title;
-  final bool? showBackButton;
-  final bool? centerTitle;
-  final Widget? titleWidget;
-  final Widget? openBrowser;
-  final Color? appBarColor;
-  final bool? showBorder;
-  final Color? leadingColor;
-
-  const CoreAppBar({
-    super.key,
-    this.title,
-    this.showActions = true,
-    this.showBackButton = true,
-    this.centerTitle,
-    this.titleWidget,
-    this.openBrowser,
-    this.appBarColor,
-    this.showBorder = false,
-    this.leadingColor,
-  });
+class CustomHeader extends StatelessWidget {
+  const CustomHeader({super.key, required this.title, required this.icon});
+  final String title;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: appBarColor ?? Colors.white,
-      scrolledUnderElevation: 0,
-      title: titleWidget ??
-          Text(
-            title ?? "-",
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(fontWeight: FontWeight.w500),
-          ),
-      centerTitle: centerTitle ?? true,
-      shape: showBorder == true
-          ? const Border(
-              bottom: BorderSide(color: kMuted),
-            )
-          : null,
-      titleSpacing: 0,
-      leading: showBackButton == true
-          ? GestureDetector(
-              onTap: () {
-                MyNavigator.pop();
-              },
-              child: Icon(
-                Icons.arrow_back,
-                color: leadingColor ?? Colors.black,
-              ),
-            )
-          : GestureDetector(
-              onTap: () => _hiddenDrawerController.scaffoldKey.currentState
-                  ?.openDrawer(),
-              child: Icon(
-                Icons.menu,
-                color: leadingColor ?? Colors.black,
-              ),
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: kPrimary,
+              borderRadius: BorderRadius.circular(8),
             ),
-      actions: [
-        if (openBrowser != null) ...[
-          openBrowser!,
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
           const SizedBox(width: 12),
-        ]
-      ],
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: kOnSurface,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

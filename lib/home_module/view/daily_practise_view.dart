@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lingolearn/home_module/controller/daily_practise_controller.dart';
+import 'package:lingolearn/utilities/common/core_app_bar.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/skeleton/practise_list_skeleton.dart';
+import 'package:lingolearn/utilities/theme/app_colors.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 final dailyPractiseController = Get.put(DailyPractiseController());
 
@@ -34,32 +37,46 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       top: true,
-      child: RefreshIndicator(
+      child: LiquidPullToRefresh(
         onRefresh: _refresh,
-        child: dailyPractiseController.obx(
-          (state) {
-            final data = state?.practices ?? [];
-            if (data.isEmpty) {
-              return const Center(child: Text('No practices scheduled yet.'));
-            }
-            return ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-              itemCount: data.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, i) => PracticeTile(
-                item: data[i],
-                onOpen: _handleOpen,
+        color: kPrimary,
+        backgroundColor: Colors.white,
+        height: 80,
+        animSpeedFactor: 1.0,
+        child: Column(
+          children: [
+            const CustomHeader(
+                title: "Daily Practise", icon: Icons.event_note_rounded),
+            Expanded(
+              child: dailyPractiseController.obx(
+                (state) {
+                  final data = state?.practices ?? [];
+                  if (data.isEmpty) {
+                    return const Center(
+                        child: Text('No practices scheduled yet.'));
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: data.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, i) => PracticeTile(
+                      item: data[i],
+                      onOpen: _handleOpen,
+                    ),
+                  );
+                },
+                onLoading: const PracticeListShimmer(),
+                onEmpty:
+                    const Center(child: Text('No practices scheduled yet.')),
+                onError: (err) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Failed to load: $err'),
+                  ),
+                ),
               ),
-            );
-          },
-          onLoading: const PracticeListShimmer(),
-          onEmpty: const Center(child: Text('No practices scheduled yet.')),
-          onError: (err) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('Failed to load: $err'),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -311,6 +328,7 @@ class _PracticeTileState extends State<PracticeTile> {
                             value: pct,
                             minHeight: 8,
                             backgroundColor: Colors.grey.shade200,
+                            color: kPrimary,
                           ),
                         ),
                         const SizedBox(height: 8),

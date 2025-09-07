@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
+import 'package:lingolearn/utilities/common/core_app_bar.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 final profileController = Get.put(ProfileController());
 
@@ -23,17 +25,28 @@ class _AccountScreenState extends State<AccountScreen> {
     });
   }
 
+  Future<void> _refresh() async {
+    await profileController.getUserProfile();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return profileController.obx(
-      (state) {
-        return Scaffold(
-          backgroundColor: kSurface,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+    return SafeArea(
+      child: LiquidPullToRefresh(
+        onRefresh: _refresh,
+        color: kPrimary,
+        backgroundColor: Colors.white,
+        height: 80,
+        animSpeedFactor: 1.0,
+        child: profileController.obx(
+          (state) {
+            return SingleChildScrollView(
               child: Column(
                 children: [
+                  const CustomHeader(
+                    title: "Profile",
+                    icon: Icons.person,
+                  ),
                   _buildProfileHeader(state),
                   const SizedBox(height: 32),
                   _buildAchievementsSection(state?.data?.achievements ?? []),
@@ -42,11 +55,11 @@ class _AccountScreenState extends State<AccountScreen> {
                   const SizedBox(height: 20),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-      onLoading: const AccountSkeleton(),
+            );
+          },
+          onLoading: const AccountSkeleton(),
+        ),
+      ),
     );
   }
 
@@ -54,6 +67,7 @@ class _AccountScreenState extends State<AccountScreen> {
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -130,66 +144,72 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildAchievementsSection(List<Achievement> achievements) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Achievements',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: kOnSurface,
-                letterSpacing: -0.5,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Achievements',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: kOnSurface,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                foregroundColor: kPrimary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  foregroundColor: kPrimary,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                child: const Text(
+                  'View all',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
-              child: const Text(
-                'View all',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-        _AchievementStrip(items: achievements),
-      ],
+            ],
+          ),
+          _AchievementStrip(items: achievements),
+        ],
+      ),
     );
   }
 
   Widget _buildStatisticsSection(UserProfileModel? state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Text(
-              'Statistics',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: kOnSurface,
-                letterSpacing: -0.5,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Text(
+                'Statistics',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: kOnSurface,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            SizedBox(width: 8),
-            Icon(
-              Icons.trending_up_rounded,
-              size: 24,
-              color: kAccent,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        StatsGrid(state: state),
-      ],
+              SizedBox(width: 8),
+              Icon(
+                Icons.trending_up_rounded,
+                size: 24,
+                color: kAccent,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          StatsGrid(state: state),
+        ],
+      ),
     );
   }
 }
