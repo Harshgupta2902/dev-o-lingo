@@ -8,7 +8,7 @@ import 'package:lingolearn/utilities/skeleton/leaderboard_skeleton.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart'; // kPrimary, kSurface, kOnSurface, kMuted, kBorder
 import 'package:lingolearn/home_module/controller/leaderboard_controller.dart';
 import 'package:lingolearn/home_module/models/leaderboard_model.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 
 final leaderboardController = Get.put(LeaderboardController(), permanent: true);
 

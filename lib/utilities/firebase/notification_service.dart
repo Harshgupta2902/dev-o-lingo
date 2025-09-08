@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +116,7 @@ class CoreNotificationService {
       // Build Android style with optional big picture
       AndroidNotificationDetails androidDetails;
       if (imageUrl != null && imageUrl.isNotEmpty) {
-        final bigPicPath = await _downloadToFile(imageUrl, 'big_${id}.jpg');
+        final bigPicPath = await _downloadToFile(imageUrl, 'big_$id.jpg');
         final largeIconPath = bigPicPath; // reuse
 
         final style = BigPictureStyleInformation(

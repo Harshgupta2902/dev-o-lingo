@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/follows_model.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 
 enum FollowsType { followers, following }
 
@@ -95,8 +95,8 @@ class _FollowsScreenState extends State<FollowsScreen> {
             color: kPrimary,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                const SizedBox(height: 80),
+              children: const [
+                SizedBox(height: 80),
                 _EmptyState(title: 'Nothing here'),
               ],
             ),
@@ -220,7 +220,7 @@ class _FollowTile extends StatelessWidget {
               child: Center(
                 child: Text(
                   actionLabel,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: actionFg,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,

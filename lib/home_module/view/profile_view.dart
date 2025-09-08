@@ -9,7 +9,7 @@ import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 
 final profileController = Get.put(ProfileController());
 final socialController = Get.put(SocialController());
@@ -123,7 +123,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 return _UserSuggestCard(
                   name: u.name ?? 'User',
                   avatar: u.profile ?? '',
-                  id: u.id.toString() ?? "",
+                  id: u.id.toString(),
                 );
               },
             ),

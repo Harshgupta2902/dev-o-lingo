@@ -7,9 +7,9 @@ import 'package:lingolearn/home_module/controller/daily_practise_controller.dart
 import 'package:lingolearn/utilities/common/core_app_bar.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
+import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 import 'package:lingolearn/utilities/skeleton/practise_list_skeleton.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
 final dailyPractiseController = Get.put(DailyPractiseController());
 

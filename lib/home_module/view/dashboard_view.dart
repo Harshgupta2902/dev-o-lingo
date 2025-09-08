@@ -707,7 +707,6 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
   }
 
   void _navigateToLesson() {
-    print(widget.unitNumber.toString());
     MyNavigator.pushNamed(
       GoPaths.exercisesView,
       extra: {
