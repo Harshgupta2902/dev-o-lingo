@@ -41,7 +41,6 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
         onRefresh: _refresh,
         color: kPrimary,
         backgroundColor: Colors.white,
-        height: 80,
         animSpeedFactor: 2.0,
         child: Column(
           children: [

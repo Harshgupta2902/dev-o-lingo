@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import 'package:lingolearn/utilities/enums.dart';
+import 'package:lingolearn/utilities/theme/enums.dart';
 
 class LevelAnimatedButton extends StatefulWidget {
   final Widget child;

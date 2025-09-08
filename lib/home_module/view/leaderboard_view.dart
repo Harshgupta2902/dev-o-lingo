@@ -48,7 +48,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         onRefresh: _refresh,
         color: kPrimary,
         backgroundColor: Colors.white,
-        height: 80,
         animSpeedFactor: 2.0,
         child: leaderboardController.obx(
           (state) {

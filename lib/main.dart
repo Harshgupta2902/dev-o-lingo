@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
+import 'package:lingolearn/utilities/firebase/analytics_service.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/firebase/crashlytics_service.dart';
 import 'package:lingolearn/utilities/firebase/notification_service.dart';
@@ -112,11 +113,12 @@ void main() async {
     FlutterError.presentError(details);
   };
 
+  FirebaseAnalytics.instance;
+  FirebaseAnalyticsService().init(getEmailId());
   await CoreNotificationService().init();
   if (kReleaseMode) {
     CrashlyticsService().init();
   }
-  FirebaseAnalytics.instance;
 
   FirebaseMessaging.onMessageOpenedApp.listen((message) {
     try {

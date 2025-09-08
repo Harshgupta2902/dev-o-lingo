@@ -52,7 +52,6 @@ class _FollowsScreenState extends State<FollowsScreen> {
         onRefresh: _refresh,
         color: kPrimary,
         backgroundColor: Colors.white,
-        height: 80,
         animSpeedFactor: 2.0,
         child: socialController.obx(
           (state) {

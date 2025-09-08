@@ -2,7 +2,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class FirebaseAnalyticsService {
-  static final FirebaseAnalyticsService _instance = FirebaseAnalyticsService._internal();
+  static final FirebaseAnalyticsService _instance =
+      FirebaseAnalyticsService._internal();
 
   FirebaseAnalyticsService._internal();
 

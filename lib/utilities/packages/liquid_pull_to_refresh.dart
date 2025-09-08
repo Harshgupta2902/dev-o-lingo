@@ -25,14 +25,12 @@ class LiquidPullToRefresh extends StatefulWidget {
     required this.onRefresh,
     this.color,
     this.backgroundColor,
-    this.height,
     this.springAnimationDurationInMilliseconds = 1000,
     this.borderWidth = 2.0,
     this.showChildOpacityTransition = false,
   }) : assert(animSpeedFactor >= 1.0);
 
   final Widget child;
-  final double? height;
   final int springAnimationDurationInMilliseconds;
   final double animSpeedFactor;
   final double borderWidth;
@@ -384,7 +382,7 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
     _positionController.value =
         newValue.clamp(0.0, 1.0); // this triggers various rebuilds
     if (_mode == _LiquidPullToRefreshMode.drag &&
-        _valueColor.value!.a == 0xFF) {
+        _valueColor.value!.alpha == 0xFF) {
       _mode = _LiquidPullToRefreshMode.armed;
     }
   }
@@ -468,13 +466,12 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
 
     Color defaultColor = Theme.of(context).colorScheme.secondary;
     Color defaultBackgroundColor = Theme.of(context).canvasColor;
-    double defaultHeight = 100.0;
 
     Color color = (widget.color != null) ? widget.color! : defaultColor;
     Color backgroundColor = (widget.backgroundColor != null)
         ? widget.backgroundColor!
         : defaultBackgroundColor;
-    double height = (widget.height != null) ? widget.height! : defaultHeight;
+    double height = kToolbarHeight;
 
     final Widget child = NotificationListener<ScrollNotification>(
       key: _key,
@@ -548,7 +545,7 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
             );
           },
         ),
-        SizedBox(
+        Container(
           height: height, //100.0
           child: AnimatedBuilder(
             animation: Listenable.merge([
@@ -623,7 +620,7 @@ class CurveHillClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    var path = Path();
+    var path = new Path();
     if (size.height >= centreHeight) {
       if (curveHeight > (size.height - centreHeight)) {
         curveHeight = size.height - centreHeight;
@@ -676,7 +673,7 @@ class CircularProgress extends StatefulWidget {
   final double startAngle;
 
   const CircularProgress({
-    super.key,
+    Key? key,
     required this.innerCircleRadius,
     required this.progressPercent,
     required this.progressCircleRadius,
@@ -684,7 +681,7 @@ class CircularProgress extends StatefulWidget {
     required this.backgroundColor,
     required this.progressCircleOpacity,
     required this.startAngle,
-  });
+  }) : super(key: key);
 
   @override
   _CircularProgressState createState() => _CircularProgressState();
@@ -696,14 +693,14 @@ class _CircularProgressState extends State<CircularProgress> {
     double containerLength =
         2 * max(widget.progressCircleRadius, widget.innerCircleRadius);
 
-    return SizedBox(
+    return Container(
       height: containerLength,
       width: containerLength,
       child: Stack(
         children: <Widget>[
           Opacity(
             opacity: widget.progressCircleOpacity,
-            child: SizedBox(
+            child: Container(
               height: widget.progressCircleRadius * 2,
               width: widget.progressCircleRadius * 2,
               child: CustomPaint(

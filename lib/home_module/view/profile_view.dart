@@ -41,7 +41,6 @@ class _AccountScreenState extends State<AccountScreen> {
         onRefresh: _refresh,
         color: kPrimary,
         backgroundColor: Colors.white,
-        height: 80,
         animSpeedFactor: 2.0,
         child: profileController.obx(
           (state) {

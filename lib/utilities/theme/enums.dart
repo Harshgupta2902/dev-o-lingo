@@ -1,10 +1,8 @@
-enum ApplicationStage { manager, course, shortlisted }
+enum LessonType { normal, bonus }
 
-enum FileTypes {
-  image,
-  sound,
-  video,
-}
+enum ButtonTypes { roundedRectangle, circle, oval }
+
+enum ButtonPositions { start, between, end }
 
 enum BorderAlign {
   inside,
