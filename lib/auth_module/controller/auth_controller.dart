@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lingolearn/auth_module/controller/onboarding_controller.dart';
 import 'package:lingolearn/auth_module/models/user_model.dart';
+import 'package:lingolearn/home_module/view/landing_view.dart';
 import 'package:lingolearn/utilities/common/scaffold_messenger.dart';
 import 'package:lingolearn/utilities/dio/api_end_points.dart';
 import 'package:lingolearn/utilities/dio/api_request.dart';
@@ -106,8 +107,6 @@ class AuthController extends GetxController
       final responseData =
           response.data is String ? jsonDecode(response.data) : response.data;
 
-      log("response fetchuserdtata $responseData");
-
       if (responseData["status"] == false &&
           responseData["code"] == "USER_NOT_FOUND") {
         debugPrint("User not found → going to onboarding flow");
@@ -130,6 +129,8 @@ class AuthController extends GetxController
         content: "Login Successful ${modal.data.user.name}",
         messageScaffoldType: MessageScaffoldType.success,
       );
+
+      await languageController.getLanguageData();
 
       return modal.data.user.id;
     } catch (error) {

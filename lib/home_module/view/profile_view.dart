@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
 import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
 import 'package:lingolearn/home_module/view/follows_screen.dart';
+import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/utilities/common/core_app_bar.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -27,6 +29,7 @@ class _AccountScreenState extends State<AccountScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       profileController.getUserProfile();
+      userStatsController.getUserStats();
     });
   }
 
@@ -150,21 +153,24 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       child: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: kPrimary.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(state?.data?.user?.profile ?? ""),
-              backgroundColor: kBorder,
+          GestureDetector(
+            onTap: () => authController.googleSignOut(context),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: kPrimary.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: NetworkImage(state?.data?.user?.profile ?? ""),
+                backgroundColor: kBorder,
+              ),
             ),
           ),
           const SizedBox(height: 16),

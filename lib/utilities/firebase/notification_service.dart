@@ -178,7 +178,9 @@ class CoreNotificationService {
     final token = await _firebaseMessaging.getToken();
     if (token == null) return;
     setFCMToken(token);
-    authController.updateFCMToken(getEmailId(), getUuid(), token);
+    if (getEmailId() != null) {
+      authController.updateFCMToken(getEmailId(), getUuid(), token);
+    }
   }
 
   /// ---- helpers ----

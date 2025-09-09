@@ -14,7 +14,9 @@ class LanguageController extends GetxController
     debugPrint("---------- $apiEndPoint getLanguageData Start ----------");
     try {
       final response = await postRequest(
-          apiEndPoint: apiEndPoint, postData: {"email": getEmailId()});
+        apiEndPoint: apiEndPoint,
+        postData: {"email": getEmailId()},
+      );
 
       debugPrint("LanguageController => getLanguageData > Success  $response");
 
