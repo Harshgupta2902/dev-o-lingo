@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lingolearn/home_module/controller/practise_test_controller.dart';
 import 'package:lingolearn/home_module/models/practice_questions_model.dart';
+import 'package:lingolearn/utilities/packages/ad_helper.dart';
 
 final practiceSessionController = Get.put(PracticeSessionController());
 
@@ -210,27 +211,30 @@ class _QuizBody extends StatelessWidget {
                       practiceSessionController.next();
                       return;
                     }
-                    try {
+
+                    Future<void> doSubmit() async {
                       final result = await practiceSessionController.submit();
-                      if (context.mounted) {
-                        await showModalBottomSheet(
-                          context: context,
-                          showDragHandle: true,
-                          backgroundColor: Colors.white,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.vertical(top: Radius.circular(16)),
-                          ),
-                          builder: (_) => _SubmitReceipt(result: result),
-                        );
-                        if (context.mounted) Navigator.pop(context, true);
-                      }
+                      if (!context.mounted) return;
+                      await showModalBottomSheet(
+                        context: context,
+                        showDragHandle: true,
+                        backgroundColor: Colors.white,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
+                        builder: (_) => _SubmitReceipt(result: result),
+                      );
+                      if (context.mounted) Navigator.pop(context, true);
+                    }
+
+                    try {
+                      await AdsHelper.showInterstitialAd(
+                        onDismissed: () async => await doSubmit(),
+                        onFailedToLoad: () async => await doSubmit(),
+                      );
                     } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Submit failed: $e')),
-                        );
-                      }
+                      await doSubmit();
                     }
                   },
                   style: ElevatedButton.styleFrom(

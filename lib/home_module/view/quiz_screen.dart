@@ -6,6 +6,7 @@ import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/home_module/models/exercises_model.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
+import 'package:lingolearn/utilities/packages/ad_helper.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 final exerciseController = Get.put(ExercisesController());
@@ -134,7 +135,8 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _forceSubmit() {
+  Future<void> _forceSubmit() async {
+    // Build payload (unchanged)
     final totalMs = _logs.fold<int>(0, (a, b) => a + b.durationMs);
     final correctCount = _logs.where((l) => l.isCorrect).length;
 
@@ -152,8 +154,11 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       "correctCount": correctCount,
     };
 
-    exerciseController.submitLesson(payload).then((value) {
-      userStatsController.getUserStats();
+    // Single place to submit + navigate
+    Future<void> doSubmit() async {
+      final value = await exerciseController.submitLesson(payload);
+      await userStatsController.getUserStats();
+
       MyNavigator.pushReplacementNamed(
         GoPaths.resultView,
         extra: {
@@ -161,10 +166,12 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
           "correctCount": value['data']['correctCount'],
           "totalDurationMs": totalMs,
           "logs": _logs,
-          "data": value['data']
+          "data": value['data'],
         },
       );
-    });
+    }
+
+    await _submitResultsWithAd(doSubmit);
   }
 
   void _next() {
@@ -183,8 +190,9 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
         "correctCount": correctCount,
       };
 
-      exerciseController.submitLesson(payload).then((value) {
-        userStatsController.getUserStats();
+      Future<void> doSubmit() async {
+        final value = await exerciseController.submitLesson(payload);
+        await userStatsController.getUserStats();
         MyNavigator.pushReplacementNamed(
           GoPaths.resultView,
           extra: {
@@ -192,17 +200,31 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
             "correctCount": value['data']['correctCount'],
             "totalDurationMs": totalMs,
             "logs": _logs,
-            "data": value['data']
+            "data": value['data'],
           },
         );
-      });
+      }
+
+      _submitResultsWithAd(doSubmit);
       return;
     } else {
       _controller.nextPage(
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic);
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
       setState(() => _currentIndex += 1);
       _resetForNextQuestion();
+    }
+  }
+
+  Future<void> _submitResultsWithAd(Future<void> Function() doSubmit) async {
+    try {
+      await AdsHelper.showInterstitialAd(
+        onDismissed: () async => await doSubmit(),
+        onFailedToLoad: () async => await doSubmit(),
+      );
+    } catch (_) {
+      await doSubmit();
     }
   }
 
