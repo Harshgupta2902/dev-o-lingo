@@ -19,6 +19,7 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
     KeyValuePairModel(key: Icons.home, value: "Home"),
     KeyValuePairModel(key: Icons.book, value: "Stories"),
     KeyValuePairModel(key: Icons.leaderboard, value: "Leaderboard"),
+    KeyValuePairModel(key: Icons.book_outlined, value: "Practise"),
     KeyValuePairModel(key: Icons.person, value: "Profile"),
   ];
 
@@ -68,6 +69,9 @@ void _onItemTapped(int index) {
       MyNavigator.pushNamed(GoPaths.leaderBoardView);
       break;
     case 3:
+      MyNavigator.pushNamed(GoPaths.practiceCenterScreen);
+      break;
+    case 4:
       MyNavigator.pushNamed(GoPaths.profileView);
       break;
     default:

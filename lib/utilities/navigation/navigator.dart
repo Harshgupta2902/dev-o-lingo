@@ -19,7 +19,8 @@ class MyNavigator {
     goRouterConfig.pop();
   }
 
-  static Future<T?> pushNamedForResult<T>(String routeName, {Object? extra}) async {
+  static Future<T?> pushNamedForResult<T>(String routeName,
+      {Object? extra}) async {
     try {
       final res = await goRouterConfig.pushNamed<T>(routeName, extra: extra);
       _logNavigationEvent(routeName);

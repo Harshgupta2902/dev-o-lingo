@@ -30,6 +30,12 @@ class _LoginViewState extends State<LoginView> {
     super.initState();
   }
 
+  Future<void> _handleGoogleAuth() async {
+    await authController.googleSignIn();
+    await authController.isLoggingIn.stream.firstWhere((v) => v == false);
+    if (Get.currentRoute == GoPaths.onBoardingView) return;
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -102,7 +108,7 @@ class _LoginViewState extends State<LoginView> {
             ),
             child: ElevatedButton(
               onPressed: () async {
-                await authController.googleSignIn(isRegister: true);
+                await _handleGoogleAuth();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6C4AFF),
@@ -117,8 +123,7 @@ class _LoginViewState extends State<LoginView> {
           const SizedBox(height: 12),
           TextButton(
             onPressed: () async {
-              await authController.googleSignIn(isRegister: false);
-              MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
+              await _handleGoogleAuth();
             },
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF6C4AFF),

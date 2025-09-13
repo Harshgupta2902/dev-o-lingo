@@ -26,7 +26,7 @@ class AuthController extends GetxController
     return account;
   }
 
-  googleSignIn({bool? isRegister = false}) async {
+  googleSignIn() async {
     debugPrint("AuthController => googleSignIn > started");
 
     try {
@@ -40,13 +40,7 @@ class AuthController extends GetxController
         return;
       }
 
-      if (isRegister == false) {
-        fetchUserData(googleUser);
-      } else {
-        await saveUser(googleUser);
-        fetchUserData(googleUser);
-        MyNavigator.pushNamed(GoPaths.onBoardingView);
-      }
+      fetchUserData(googleUser);
     } catch (e) {
       debugPrint("AuthController => Error during Google sign-in: $e");
       messageScaffold(
@@ -129,8 +123,8 @@ class AuthController extends GetxController
         content: "Login Successful ${modal.data.user.name}",
         messageScaffoldType: MessageScaffoldType.success,
       );
-
       await languageController.getLanguageData();
+      MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
 
       return modal.data.user.id;
     } catch (error) {

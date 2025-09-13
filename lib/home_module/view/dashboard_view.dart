@@ -66,13 +66,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   void initState() {
     super.initState();
     _initAnimations();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) async {
-        if (languageController.state != null) {
-          _mapApiData(languageController.state!);
-        }
-      },
-    );
   }
 
   List<Units> mapUnits(List<Units> apiUnits) {
@@ -100,35 +93,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
           }).toList() ??
           <Lessons>[];
     }).toList();
-  }
-
-  void _mapApiData(GetHomeLanguageModel model) {
-    final unitsFromApi = model.data?.units ?? [];
-    final lastCompletedId = model.data?.lastCompletedLessonId;
-
-    units = unitsFromApi;
-    allLessons =
-        unitsFromApi.expand((unit) => unit.lessons ?? <Lessons>[]).toList();
-
-    if (lastCompletedId != null) {
-      bool unlocked = true;
-      for (var lesson in allLessons) {
-        if (lesson.id == lastCompletedId) {
-          lesson.isCompleted = true;
-          lesson.isCurrent = true;
-          unlocked = false;
-        } else if (unlocked) {
-          lesson.isCompleted = true;
-        } else {
-          lesson.isCompleted = false;
-          lesson.isCurrent = false;
-        }
-      }
-    }
-
-    setState(() {
-      _buildPathItems();
-    });
   }
 
   void _initAnimations() {
@@ -187,7 +151,8 @@ class _LessonPathScreenState extends State<LessonPathScreen>
         unitIndex: unitCounter,
       ));
 
-      for (int i = 0; i < unit.lessonCount!; i++) {
+      final lessonCount = (unit.lessons?.length ?? unit.lessonCount ?? 0);
+      for (int i = 0; i < lessonCount; i++) {
         if (currentLessonIndex < allLessons.length) {
           pathItems.add(PathItem(
             type: 'lesson',
@@ -222,34 +187,107 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.dark,
-      ),
-    );
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.dark,
+    ));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
-      body: allLessons.isEmpty
-          ? const LessonPathSkeleton()
-          : Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: DuolingoLessonPathView(
-                      pathItems: pathItems,
-                      allLessons: allLessons,
-                      bounceAnimation: _bounceAnimation,
-                      floatAnimation: _floatAnimation,
-                      pulseAnimation: _pulseAnimation,
-                      units: units,
-                      lastCompletedId: languageController
-                          .state?.data?.lastCompletedLessonId),
+      body: languageController.obx(
+        (state) {
+          if (state == null) {
+            return const Center(child: Text("No data found"));
+          }
+
+          // ---- derive view-model from controller state ----
+          final unitsFromApi = state.data?.units ?? <Units>[];
+          final lastCompletedId = state.data?.lastCompletedLessonId;
+
+          final allLessons = unitsFromApi
+              .expand((u) => u.lessons ?? const <Lessons>[])
+              .toList();
+
+          // mark completed/current
+          if (allLessons.isNotEmpty && lastCompletedId != null) {
+            bool unlocked = true;
+            for (final lesson in allLessons) {
+              if (lesson.id == (lastCompletedId + 1)) {
+                lesson.isCompleted = true;
+                lesson.isCurrent = true;
+                unlocked = false;
+              } else if (unlocked) {
+                lesson.isCompleted = true;
+              } else {
+                lesson.isCompleted = false;
+                lesson.isCurrent = false;
+              }
+            }
+          }
+
+          // build pathItems locally
+          final pathItems = <PathItem>[];
+          int currentLessonIndex = 0;
+          int pathItemIndex = 0;
+          int unitCounter = 1;
+
+          for (final unit in unitsFromApi) {
+            pathItems.add(PathItem(
+              type: 'unit',
+              data: unit,
+              pathIndex: pathItemIndex++,
+              unitIndex: unitCounter,
+            ));
+
+            final count = unit.lessonCount ?? (unit.lessons?.length ?? 0);
+            for (int i = 0; i < count; i++) {
+              if (currentLessonIndex < allLessons.length) {
+                pathItems.add(PathItem(
+                  type: 'lesson',
+                  data: allLessons[currentLessonIndex],
+                  pathIndex: pathItemIndex++,
+                  unitIndex: unitCounter,
+                ));
+                currentLessonIndex++;
+              }
+            }
+            unitCounter++;
+          }
+          while (currentLessonIndex < allLessons.length) {
+            pathItems.add(PathItem(
+              type: 'lesson',
+              data: allLessons[currentLessonIndex],
+              pathIndex: pathItemIndex++,
+            ));
+            currentLessonIndex++;
+          }
+
+          // if nothing yet, show skeleton
+          if (pathItems.isEmpty) {
+            return const LessonPathSkeleton();
+          }
+
+          return Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: DuolingoLessonPathView(
+                  pathItems: pathItems,
+                  allLessons: allLessons,
+                  bounceAnimation: _bounceAnimation,
+                  floatAnimation: _floatAnimation,
+                  pulseAnimation: _pulseAnimation,
+                  units: unitsFromApi,
+                  lastCompletedId: lastCompletedId,
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
+        onLoading: const LessonPathSkeleton(),
+        onError: (err) => Center(child: Text("Error: $err")),
+      ),
     );
   }
 
@@ -327,6 +365,7 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
 
+    if (widget.pathItems.isEmpty) return;
     for (var item in widget.pathItems) {
       _lessonKeys[item.pathIndex] = GlobalKey();
     }
@@ -339,18 +378,24 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
 
     // ✅ Post-frame scroll
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetLesson = widget.pathItems.firstWhere(
-        (item) =>
-            item.type == 'lesson' &&
-            widget.lastCompletedId != null &&
-            (item.data as Lessons).id == widget.lastCompletedId,
-        orElse: () => widget.pathItems.firstWhere(
-          (p) => p.type == 'lesson',
-          orElse: () => widget.pathItems[firstUnitIndex],
-        ),
-      );
+      // No items? Nothing to do.
+      if (widget.pathItems.isEmpty) return;
 
-      // Header ko sahi unit par set karo
+      // Pick first lesson safely
+      final firstLessonIndex =
+          widget.pathItems.indexWhere((p) => p.type == 'lesson');
+      if (firstLessonIndex == -1) return;
+
+      // Prefer lastCompletedId if present
+      int targetIndex = widget.pathItems.indexWhere((p) =>
+          p.type == 'lesson' &&
+          widget.lastCompletedId != null &&
+          (p.data as Lessons).id == widget.lastCompletedId);
+      if (targetIndex == -1) targetIndex = firstLessonIndex;
+
+      final targetLesson = widget.pathItems[targetIndex];
+
+      // Set header to the unit above target lesson
       for (int i = targetLesson.pathIndex; i >= 0; i--) {
         if (widget.pathItems[i].type == 'unit') {
           if (_currentUnitIndex != widget.pathItems[i].pathIndex) {
@@ -362,11 +407,12 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         }
       }
 
-      // ✅ Scroll to target lesson
+      // Scroll into view if key exists
       final key = _lessonKeys[targetLesson.pathIndex];
-      if (key?.currentContext != null) {
+      final ctx = key?.currentContext;
+      if (ctx != null) {
         Scrollable.ensureVisible(
-          key!.currentContext!,
+          ctx,
           duration: const Duration(milliseconds: 800),
           curve: Curves.easeInOutCubic,
           alignment: 0.5,
@@ -419,11 +465,12 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         widget.pathItems[_currentUnitIndex!].type == 'unit') {
       final unitData = widget.pathItems[_currentUnitIndex!].data as Units;
       final unitIndex = widget.pathItems[_currentUnitIndex!].unitIndex ?? 1;
+
       slivers.add(SliverPersistentHeader(
         pinned: true,
         delegate: _UnitHeaderDelegate(
           title: unitData.name ?? "",
-          unitId: unitData.sortOrder!,
+          unitId: unitIndex, // ← safe
           externalId: unitData.externalId ?? "",
           isActive: true,
           unitColor: unitColors[(unitIndex - 1) % unitColors.length],

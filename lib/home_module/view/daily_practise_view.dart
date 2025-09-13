@@ -59,6 +59,8 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
                     itemCount: data.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, i) => PracticeTile(
+                      key: ValueKey(
+                          '${data[i].practiceId ?? data[i].date}-${data[i].status}'),
                       item: data[i],
                       onOpen: _handleOpen,
                     ),
@@ -83,7 +85,8 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
 
   void _handleOpen(PracticeItem item) async {
     if (item.practiceId == null) return;
-    if (item.status == 'locked') return;
+    if (item.status.toLowerCase() == 'locked') return;
+    if (item.status.toLowerCase() == 'completed') return;
 
     final result = await MyNavigator.pushNamedForResult(
       GoPaths.practicesQuestionScreen,
@@ -107,10 +110,17 @@ class PracticeTile extends StatefulWidget {
   State<PracticeTile> createState() => _PracticeTileState();
 }
 
-class _PracticeTileState extends State<PracticeTile> {
+class _PracticeTileState extends State<PracticeTile>
+    with AutomaticKeepAliveClientMixin {
   Timer? _ticker;
   Duration _remaining = Duration.zero;
-  DateTime? _target; // countdown target (available only)
+  DateTime? _target;
+
+  // --- Normalized helpers ---
+  String get _status =>
+      (widget.item.status ?? '').toString().toLowerCase().trim();
+  bool get _isAvailable => _status == 'available';
+  bool get _ctaEnabled => _isAvailable && widget.item.practiceId != null;
 
   @override
   void initState() {
@@ -122,7 +132,11 @@ class _PracticeTileState extends State<PracticeTile> {
   void didUpdateWidget(covariant PracticeTile oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.item.date != widget.item.date ||
-        oldWidget.item.status != widget.item.status) {
+        oldWidget.item.status != widget.item.status ||
+        oldWidget.item.isToday != widget.item.isToday ||
+        oldWidget.item.done != widget.item.done || // NEW
+        oldWidget.item.total != widget.item.total) {
+      // NEW
       _computeTargetAndStart();
     }
   }
@@ -133,30 +147,36 @@ class _PracticeTileState extends State<PracticeTile> {
     super.dispose();
   }
 
-  // Helpers
+  @override
+  bool get wantKeepAlive => true;
+
   DateTime _endOfDay(DateTime d) =>
       DateTime(d.year, d.month, d.day, 23, 59, 59);
 
+  int get _done => widget.item.done ?? 0;
+  int get _total => widget.item.total ?? 0;
+  bool get _isInProgress => (widget.item.isToday == true) && _done < _total;
+  String get _uiStatus => _isInProgress ? 'available' : _status;
   void _computeTargetAndStart() {
     _ticker?.cancel();
 
-    // Only run countdown for AVAILABLE
-    if (widget.item.status == 'available') {
-      final now = DateTime.now();
-      _target = _endOfDay(now); // ends today
-      _tick(); // initial compute
+    if ((_uiStatus == 'available') && (widget.item.isToday == true)) {
+      _target = _endOfDay(DateTime.now());
+      _tick();
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     } else {
       _target = null;
-      setState(() => _remaining = Duration.zero);
+      _remaining = Duration.zero;
+      if (mounted) setState(() {});
     }
   }
 
   void _tick() {
-    if (_target == null) return;
-    final now = DateTime.now();
-    final diff = _target!.difference(now);
-    setState(() => _remaining = diff.isNegative ? Duration.zero : diff);
+    if (!mounted || _target == null) return;
+    final diff = _target!.difference(DateTime.now());
+    setState(() {
+      _remaining = diff.isNegative ? Duration.zero : diff;
+    });
   }
 
   String _fmtDur(Duration d) {
@@ -171,271 +191,194 @@ class _PracticeTileState extends State<PracticeTile> {
   String _prettyDate(String ymd) {
     try {
       final dt = DateTime.parse('${ymd}T00:00:00.000');
-      final fmt = DateFormat('EEE, d MMM');
-      return fmt.format(dt);
+      return DateFormat('EEE, d MMM').format(dt);
     } catch (_) {
       return ymd;
     }
   }
 
   Color _chipColor(BuildContext context) {
-    switch (widget.item.status) {
+    switch (_status) {
       case 'available':
         return Colors.blue.shade50;
       case 'completed':
         return Colors.green.shade50;
+      case 'missed':
+        return Colors.red.shade50;
       default:
         return Colors.grey.shade100;
     }
   }
 
   Color _chipBorder(BuildContext context) {
-    switch (widget.item.status) {
+    switch (_status) {
       case 'available':
         return Colors.blue.shade300;
       case 'completed':
         return Colors.green.shade300;
+      case 'missed':
+        return Colors.red.shade300;
       default:
         return Colors.grey.shade400;
     }
   }
 
   IconData _leadingIcon() {
-    switch (widget.item.status) {
+    switch (_uiStatus) {
       case 'available':
         return Icons.play_arrow_rounded;
       case 'completed':
         return Icons.check_circle_rounded;
+      case 'missed':
+        return Icons.cancel_rounded;
       default:
         return Icons.lock_rounded;
     }
   }
 
-  String _ctaText() {
-    switch (widget.item.status) {
-      case 'available':
-        return widget.item.isToday ? 'Start' : 'Open';
-      case 'completed':
-        return 'Completed';
-      default:
-        return 'Locked';
-    }
-  }
-
-  bool get _ctaEnabled =>
-      widget.item.status == 'available' && widget.item.practiceId != null;
-
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final item = widget.item;
     final pct = item.total == 0 ? 0.0 : (item.done / item.total);
     final chipColor = _chipColor(context);
     final chipBorder = _chipBorder(context);
 
-    final showCountdown = widget.item.status == 'available' && _target != null;
-
-    return Material(
-      color: Colors.transparent,
-      child: Ink(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(.05),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // HEADER
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: chipColor,
-                    child: Icon(_leadingIcon(), color: chipBorder),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              _prettyDate(item.date),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: chipColor,
-                                border: Border.all(color: chipBorder),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                item.status.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: chipBorder,
+    return GestureDetector(
+      onTap: () => widget.onOpen(widget.item),
+      child: Material(
+        color: Colors.transparent,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(.05),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // HEADER
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: chipColor,
+                      child: Icon(_leadingIcon(), color: chipBorder),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                _prettyDate(item.date),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
                                 ),
                               ),
-                            ),
-                            if (item.isToday)
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
+                                    horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade50,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border:
-                                      Border.all(color: Colors.orange.shade300),
+                                  color: chipColor,
+                                  border: Border.all(color: chipBorder),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  'TODAY',
+                                  _status.toUpperCase(),
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.orange.shade800,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-                        // progress
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: pct,
-                            minHeight: 8,
-                            backgroundColor: Colors.grey.shade200,
-                            color: kPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // stats
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 6,
-                          children: [
-                            Text(
-                              'Done ${item.done}/${item.total}',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const Text('•', style: TextStyle(fontSize: 12)),
-                            Text('XP ${item.earnedXp}',
-                                style: TextStyle(
-                                    color: Colors.grey.shade700, fontSize: 12)),
-                            Text('Gems ${item.earnedGems}',
-                                style: TextStyle(
-                                    color: Colors.grey.shade700, fontSize: 12)),
-                            if (item.completedAtAgo != null)
-                              Text('Completed ${item.completedAtAgo}',
-                                  style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 12)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              // SHOW CTA + COUNTDOWN **ONLY** WHEN AVAILABLE
-              if (widget.item.status == 'available')
-                Row(
-                  children: [
-                    if (showCountdown)
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.timer_rounded,
-                                    size: 16, color: Colors.grey.shade800),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Ends in ${_fmtDur(_remaining)}',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.grey.shade800,
+                                    color: chipBorder,
                                   ),
                                 ),
-                              ],
+                              ),
+                              if (item.isToday)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: Colors.orange.shade300),
+                                  ),
+                                  child: Text(
+                                    'TODAY',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.orange.shade800,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
+                          // progress
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: pct,
+                              minHeight: 8,
+                              backgroundColor: Colors.grey.shade200,
+                              color: kPrimary,
                             ),
                           ),
-                        ),
-                      )
-                    else
-                      const Spacer(),
-                    const SizedBox(width: 12),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 160),
-                      child: ElevatedButton(
-                        onPressed: _ctaEnabled
-                            ? () => widget.onOpen(widget.item)
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _ctaEnabled ? Colors.black : Colors.grey.shade300,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          textStyle:
-                              const TextStyle(fontWeight: FontWeight.w700),
-                          minimumSize: const Size(0, 40),
-                        ),
-                        child: Text(
-                          _ctaText(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(height: 8),
+
+                          // stats
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 6,
+                            children: [
+                              Text(
+                                'Done ${item.done}/${item.total}',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const Text('•', style: TextStyle(fontSize: 12)),
+                              Text('XP ${item.earnedXp}',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontSize: 12)),
+                              Text('Gems ${item.earnedGems}',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontSize: 12)),
+                              if (item.completedAtAgo != null)
+                                Text('Completed ${item.completedAtAgo}',
+                                    style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12)),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

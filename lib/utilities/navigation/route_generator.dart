@@ -6,6 +6,8 @@ import 'package:lingolearn/home_module/view/follows_screen.dart';
 import 'package:lingolearn/home_module/view/landing_view.dart';
 import 'package:lingolearn/home_module/view/leaderboard_view.dart';
 import 'package:lingolearn/home_module/view/practice_quiz_screen.dart';
+import 'package:lingolearn/home_module/view/practise_center.dart';
+import 'package:lingolearn/home_module/view/premium_screen.dart';
 import 'package:lingolearn/home_module/view/profile_view.dart';
 import 'package:lingolearn/auth_module/view/login_view.dart';
 import 'package:lingolearn/auth_module/view/onboarding_view.dart';
@@ -63,6 +65,14 @@ final GoRouter goRouterConfig = GoRouter(
           name: GoPaths.leaderBoardView,
           builder: (context, state) {
             return const LeaderboardScreen();
+          },
+        ),
+        GoRoute(
+          parentNavigatorKey: shellNavigatorKey,
+          path: GoPaths.practiceCenterScreen,
+          name: GoPaths.practiceCenterScreen,
+          builder: (context, state) {
+            return PracticeCenterScreen();
           },
         ),
       ],
@@ -154,6 +164,14 @@ final GoRouter goRouterConfig = GoRouter(
         final extras = state.extra as Map<String, dynamic>;
         final type = extras['type'];
         return FollowsScreen(type: type);
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.practisePremiumView,
+      name: GoPaths.practisePremiumView,
+      builder: (context, state) {
+        return PremiumScreen();
       },
     ),
   ],

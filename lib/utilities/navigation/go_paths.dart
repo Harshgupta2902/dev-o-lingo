@@ -8,6 +8,7 @@ class GoPaths {
   static const String dailyPracticesScreen = '/DailyPracticesScreen';
   static const String profileView = '/profileView';
   static const String leaderBoardView = '/leaderBoardView';
+  static const String practiceCenterScreen = '/practiceCenterScreen';
 
   static const String exercisesView = '/exercisesView';
   static const String questionnaireView = '/questionnaireView';
@@ -16,5 +17,10 @@ class GoPaths {
   static const String practicesQuestionScreen = '/practicesQuestionScreen';
 
   static const String followsView = '/followsView';
+
+
+
+
+  static const String practisePremiumView = '/practisePremiumView';
 
 }
