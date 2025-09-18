@@ -19,8 +19,7 @@ class GoPaths {
   static const String followsView = '/followsView';
 
 
-
-
+  static const String shopScreen = '/ShopScreen';
   static const String practisePremiumView = '/practisePremiumView';
 
 }

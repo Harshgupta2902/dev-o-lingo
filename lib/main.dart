@@ -16,7 +16,6 @@ import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/firebase/crashlytics_service.dart';
 import 'package:lingolearn/utilities/firebase/notification_service.dart';
 import 'package:lingolearn/utilities/navigation/route_generator.dart';
-import 'package:lingolearn/utilities/packages/ad_helper.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/utilities/theme/smooth_rectangular_border.dart';
 
@@ -76,8 +75,8 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  await AdsHelper.initialize();
-
+  // await AdsHelper.initialize();
+  // Get.put(IAPService(), permanent: true);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   if (Platform.isAndroid) {

@@ -1,7 +1,7 @@
 class APIEndPoints {
   static const live = 'https://ipo-tec-app-api.vercel.app/app/';
-  // static const local = 'http://10.141.84.190:3040/api/';
-  static const local = 'http://192.168.1.52:3040/api/';
+  static const local = 'http://10.141.84.242:2010/api/';
+  // static const local = 'http://192.168.1.52:3040/api/';
 
   static const base = local;
 
@@ -30,4 +30,10 @@ class APIEndPoints {
   static const unfollow = "unfollow";
   static const followers = "followers";
   static const following = "following";
+
+
+  static const getShopItems = "shop/items";
+  static const verifyShopPurchase = "shop/verify";
+  static const createShopOrder = "shop/create";
+
 }

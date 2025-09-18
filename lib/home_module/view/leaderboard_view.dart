@@ -71,7 +71,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             return Column(
               children: [
                 const CustomHeader(
-                    title: "Leaderboard", icon: Icons.leaderboard),
+                  title: "Leaderboard",
+                  icon: Icons.leaderboard,
+                ),
 
                 // Filter Pills
                 Padding(

@@ -302,7 +302,11 @@ class _LessonPathScreenState extends State<LessonPathScreen>
             children: [
               _buildStatItem(Icons.local_fire_department,
                   "${state?.streak ?? 0}", Colors.orange),
-              _buildStatItem(Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
+              GestureDetector(
+                onTap: () => MyNavigator.pushNamed(GoPaths.shopScreen),
+                child: _buildStatItem(
+                    Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
+              ),
               _buildStatItem(Icons.star, "${state?.xp ?? 0}", Colors.purple),
               _buildStatItem(
                   Icons.favorite, "${state?.hearts ?? 0}", Colors.red),
@@ -339,6 +343,7 @@ class DuolingoLessonPathView extends StatefulWidget {
   final Animation<double> floatAnimation;
   final Animation<double> pulseAnimation;
   final int? lastCompletedId;
+
   const DuolingoLessonPathView({
     super.key,
     required this.pathItems,
@@ -470,7 +475,8 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         pinned: true,
         delegate: _UnitHeaderDelegate(
           title: unitData.name ?? "",
-          unitId: unitIndex, // ← safe
+          unitId: unitIndex,
+          // ← safe
           externalId: unitData.externalId ?? "",
           isActive: true,
           unitColor: unitColors[(unitIndex - 1) % unitColors.length],

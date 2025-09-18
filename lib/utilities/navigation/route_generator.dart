@@ -14,6 +14,7 @@ import 'package:lingolearn/auth_module/view/onboarding_view.dart';
 import 'package:lingolearn/home_module/view/exercises_view.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/home_module/view/result_view.dart';
+import 'package:lingolearn/home_module/view/shop/shop_view.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 
@@ -172,6 +173,14 @@ final GoRouter goRouterConfig = GoRouter(
       name: GoPaths.practisePremiumView,
       builder: (context, state) {
         return PremiumScreen();
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.shopScreen,
+      name: GoPaths.shopScreen,
+      builder: (context, state) {
+        return ShopView();
       },
     ),
   ],
