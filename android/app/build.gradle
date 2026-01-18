@@ -50,7 +50,7 @@ android {
     defaultConfig {
         multiDexEnabled true
         applicationId = "com.lingo.learn"
-        minSdk = 23
+        minSdkVersion = flutter.minSdkVersion
         targetSdkVersion 35
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
