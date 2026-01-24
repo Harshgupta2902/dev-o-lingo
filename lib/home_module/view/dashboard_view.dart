@@ -11,7 +11,9 @@ import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/skeleton/lesson_path_skeleton.dart';
+import 'package:lingolearn/home_module/view/path_painter.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
+import 'package:lingolearn/config.dart';
 
 final languageController = Get.put(LanguageController());
 
@@ -135,47 +137,6 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
     _bounceController.repeat(reverse: true);
     _floatController.repeat(reverse: true);
-  }
-
-  void _buildPathItems() {
-    pathItems.clear();
-    int currentLessonIndex = 0;
-    int pathItemIndex = 0;
-    int unitCounter = 1;
-
-    for (var unit in units) {
-      pathItems.add(PathItem(
-        type: 'unit',
-        data: unit,
-        pathIndex: pathItemIndex++,
-        unitIndex: unitCounter,
-      ));
-
-      final lessonCount = (unit.lessons?.length ?? unit.lessonCount ?? 0);
-      for (int i = 0; i < lessonCount; i++) {
-        if (currentLessonIndex < allLessons.length) {
-          pathItems.add(PathItem(
-            type: 'lesson',
-            data: allLessons[currentLessonIndex],
-            pathIndex: pathItemIndex++,
-            unitIndex: unitCounter,
-          ));
-          currentLessonIndex++;
-        }
-      }
-      unitCounter++;
-    }
-
-    while (currentLessonIndex < allLessons.length) {
-      pathItems.add(
-        PathItem(
-          type: 'lesson',
-          data: allLessons[currentLessonIndex],
-          pathIndex: pathItemIndex++,
-        ),
-      );
-      currentLessonIndex++;
-    }
   }
 
   @override
@@ -363,6 +324,10 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
   late final ScrollController _scrollController;
   final Map<int, GlobalKey> _lessonKeys = {};
   int? _currentUnitIndex;
+  bool _isStartButtonVisible = true;
+  bool _isStartButtonAbove = false;
+  int? _startButtonPathIndex;
+  Color _startButtonUnitColor = unitColors[0];
 
   @override
   void initState() {
@@ -370,63 +335,137 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
 
-    if (widget.pathItems.isEmpty) return;
-    for (var item in widget.pathItems) {
-      _lessonKeys[item.pathIndex] = GlobalKey();
-    }
+    _generateKeys();
+    _findStartButton();
 
-    // ✅ Default header ke liye first unit
+    // ✅ Post-frame scroll and visibility check
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initScroll();
+        _checkStartButtonVisibility();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant DuolingoLessonPathView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pathItems != widget.pathItems) {
+      _generateKeys();
+      _findStartButton();
+      _checkStartButtonVisibility();
+    }
+  }
+
+  void _generateKeys() {
+    for (var item in widget.pathItems) {
+      if (!_lessonKeys.containsKey(item.pathIndex)) {
+        _lessonKeys[item.pathIndex] = GlobalKey();
+      }
+    }
+  }
+
+  void _findStartButton() {
+    final startIndex = widget.pathItems.indexWhere(
+        (p) => p.type == 'lesson' && (p.data as Lessons).isCurrent == true);
+    if (startIndex != -1) {
+      final item = widget.pathItems[startIndex];
+      _startButtonPathIndex = item.pathIndex;
+      final unitIndex = item.unitIndex ?? 1;
+      _startButtonUnitColor = unitColors[(unitIndex - 1) % unitColors.length];
+    }
+  }
+
+  void _initScroll() {
+    if (widget.pathItems.isEmpty) return;
+
+    // Default header
     final firstUnitIndex = widget.pathItems.indexWhere((p) => p.type == 'unit');
     if (firstUnitIndex != -1) {
       _currentUnitIndex = widget.pathItems[firstUnitIndex].pathIndex;
     }
 
-    // ✅ Post-frame scroll
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // No items? Nothing to do.
-      if (widget.pathItems.isEmpty) return;
+    // Pick target lesson safely
+    final firstLessonIndex =
+        widget.pathItems.indexWhere((p) => p.type == 'lesson');
+    if (firstLessonIndex == -1) return;
 
-      // Pick first lesson safely
-      final firstLessonIndex =
-          widget.pathItems.indexWhere((p) => p.type == 'lesson');
-      if (firstLessonIndex == -1) return;
+    int targetIndex = widget.pathItems.indexWhere((p) =>
+        p.type == 'lesson' &&
+        widget.lastCompletedId != null &&
+        (p.data as Lessons).id == widget.lastCompletedId);
 
-      // Prefer lastCompletedId if present
-      int targetIndex = widget.pathItems.indexWhere((p) =>
-          p.type == 'lesson' &&
-          widget.lastCompletedId != null &&
-          (p.data as Lessons).id == widget.lastCompletedId);
-      if (targetIndex == -1) targetIndex = firstLessonIndex;
+    if (targetIndex == -1) {
+      // If no last completed, target the current (active) lesson
+      targetIndex = widget.pathItems.indexWhere(
+          (p) => p.type == 'lesson' && (p.data as Lessons).isCurrent == true);
+    }
 
-      final targetLesson = widget.pathItems[targetIndex];
+    if (targetIndex == -1) targetIndex = firstLessonIndex;
 
-      // Set header to the unit above target lesson
-      for (int i = targetLesson.pathIndex; i >= 0; i--) {
-        if (widget.pathItems[i].type == 'unit') {
-          if (_currentUnitIndex != widget.pathItems[i].pathIndex) {
-            setState(() {
-              _currentUnitIndex = widget.pathItems[i].pathIndex;
-            });
-          }
-          break;
+    final targetLesson = widget.pathItems[targetIndex];
+
+    // Set header to the unit above target lesson
+    for (int i = targetLesson.pathIndex; i >= 0; i--) {
+      if (widget.pathItems[i].type == 'unit') {
+        _currentUnitIndex = widget.pathItems[i].pathIndex;
+        break;
+      }
+    }
+
+    // Scroll into view
+    final key = _lessonKeys[targetLesson.pathIndex];
+    final ctx = key?.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOutCubic,
+        alignment: 0.5,
+      );
+    }
+  }
+
+  void _checkStartButtonVisibility() {
+    if (_startButtonPathIndex == null) return;
+
+    final key = _lessonKeys[_startButtonPathIndex];
+    if (key == null || key.currentContext == null) return;
+
+    try {
+      final renderObject = key.currentContext!.findRenderObject();
+      if (renderObject == null) return;
+
+      if (renderObject is RenderBox) {
+        final box = renderObject;
+        final offset = box.localToGlobal(Offset.zero).dy;
+        // Button height is typically 72px for the button,
+        // but the card is larger. We use a buffer.
+        final screenHeight = MediaQuery.of(context).size.height;
+        final buttonHeight = box.size.height;
+
+        // Button is visible if it's within screen bounds (with buffer for headers)
+        // Adjust the range: 140px is a safe area below the header
+        final isVisible =
+            (offset + buttonHeight) >= 160 && offset <= (screenHeight - 80);
+
+        final isAbove = offset < 160;
+
+        if (_isStartButtonVisible != isVisible ||
+            _isStartButtonAbove != isAbove) {
+          setState(() {
+            _isStartButtonVisible = isVisible;
+            _isStartButtonAbove = isAbove;
+          });
         }
       }
-
-      // Scroll into view if key exists
-      final key = _lessonKeys[targetLesson.pathIndex];
-      final ctx = key?.currentContext;
-      if (ctx != null) {
-        Scrollable.ensureVisible(
-          ctx,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOutCubic,
-          alignment: 0.5,
-        );
-      }
-    });
+    } catch (e) {
+      // Ignore errors during visibility check
+    }
   }
 
   void _onScroll() {
+    // Check unit headers
     for (int i = 0; i < widget.pathItems.length; i++) {
       final item = widget.pathItems[i];
       if (item.type == 'unit') {
@@ -445,6 +484,24 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         }
       }
     }
+
+    // Check if START button is visible
+    _checkStartButtonVisibility();
+  }
+
+  void _scrollToStartButton() {
+    if (_startButtonPathIndex != null) {
+      final key = _lessonKeys[_startButtonPathIndex];
+      final ctx = key?.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
+          alignment: 0.5,
+        );
+      }
+    }
   }
 
   @override
@@ -455,10 +512,36 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: _scrollController,
-      physics: const BouncingScrollPhysics(),
-      slivers: _buildSliverLessonPath(),
+    return Stack(
+      children: [
+        CustomScrollView(
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
+          slivers: _buildSliverLessonPath(),
+        ),
+
+        // Floating action button to scroll to START
+        if (AppConfig.showRecenterButton &&
+            !_isStartButtonVisible &&
+            _startButtonPathIndex != null)
+          Positioned(
+            right: 16,
+            bottom: 30,
+            child: FloatingActionButton(
+              onPressed: _scrollToStartButton,
+              backgroundColor: _startButtonUnitColor,
+              elevation: 4,
+              heroTag: 'start_fab',
+              child: Icon(
+                _isStartButtonAbove
+                    ? Icons.keyboard_arrow_up_rounded
+                    : Icons.keyboard_arrow_down_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -484,7 +567,8 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
       ));
     }
 
-    for (var item in widget.pathItems) {
+    for (int i = 0; i < widget.pathItems.length; i++) {
+      final item = widget.pathItems[i];
       if (item.type == 'unit') {
         slivers.add(
           SliverToBoxAdapter(
@@ -501,8 +585,21 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         final translateX = 80 * math.sin((item.pathIndex * 120) / 100);
         final unitNumber = lessonData.id ?? 0;
         final unitColor = unitColors[(lessonNumber - 1) % unitColors.length];
-
         final slug = lessonData.externalId;
+
+        // Determine if we should draw a path to the next item
+        bool shouldDrawPath = false;
+        double nextTranslateX = 0;
+
+        // Look ahead
+        if (i + 1 < widget.pathItems.length) {
+          final nextItem = widget.pathItems[i + 1];
+          // Only draw path if next item is also a lesson (not a unit header)
+          if (nextItem.type == 'lesson') {
+            nextTranslateX = 80 * math.sin((nextItem.pathIndex * 120) / 100);
+            shouldDrawPath = true;
+          }
+        }
 
         bool isLastInUnit = false;
         for (var unit in widget.units) {
@@ -513,25 +610,68 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
           }
         }
 
+        // Color logic for the path:
+        // Use unitColor if this lesson is completed (implying path to next is active/done)
+        // OR if next is completed.
+        // If current is NOT completed, path is gray (locked).
+        // Exceptions: if current is active (isCurrent), path out from it is typically gray (locked) util we finish.
+        final pathColor =
+            (lessonData.isCompleted == true) ? unitColor : Colors.grey.shade300;
+
         slivers.add(SliverToBoxAdapter(
-          key: _lessonKeys[item.pathIndex],
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Transform.translate(
-              offset: Offset(translateX, 0),
-              child: Center(
-                child: ModernLevelButton(
-                  slug: slug ?? "",
-                  lessonNumber: lessonNumber,
-                  unitNumber: unitNumber,
-                  isCompleted: lessonData.isCompleted ?? false,
-                  isCurrent: lessonData.isCurrent ?? false,
-                  isBonus: false,
-                  isLastInUnit: isLastInUnit,
-                  bounceAnimation: widget.bounceAnimation,
-                  floatAnimation: widget.floatAnimation,
-                  pulseAnimation: widget.pulseAnimation,
-                  unitColor: unitColor,
+          child: Container(
+            key: _lessonKeys[item.pathIndex],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Transform.translate(
+                offset: Offset(translateX, 0),
+                child: Center(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      // The Path Painter (drawing line from bottom edge to next top edge)
+                      if (AppConfig.showLessonPathLines &&
+                          shouldDrawPath &&
+                          !isLastInUnit)
+                        Positioned(
+                          top: 72, // Bottom edge of 72px button
+                          left: 36, // Center horizontally
+                          child: CustomPaint(
+                            painter: PathPainter(
+                              startX: 0,
+                              endX: nextTranslateX - translateX,
+                              height: 32, // Gap between buttons (16 + 16)
+                              color: pathColor,
+                            ),
+                          ),
+                        ),
+
+                      // The actual button or card
+                      ModernLevelButton(
+                        slug: slug ?? "",
+                        lessonNumber: lessonNumber,
+                        unitNumber: unitNumber,
+                        isCompleted: lessonData.isCompleted ?? false,
+                        isCurrent: lessonData.isCurrent ?? false,
+                        isBonus: false,
+                        isLastInUnit: isLastInUnit,
+                        bounceAnimation: widget.bounceAnimation,
+                        floatAnimation: widget.floatAnimation,
+                        pulseAnimation: widget.pulseAnimation,
+                        unitColor: unitColor,
+                        lessonName: lessonData.name ?? "",
+                        totalLessons: widget.units
+                                .firstWhere((u) => u.id == lessonData.unitId,
+                                    orElse: () => widget.units.isNotEmpty
+                                        ? widget.units.first
+                                        : Units())
+                                .lessonCount
+                                ?.toInt() ??
+                            0,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -541,35 +681,48 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
         if (isLastInUnit) {
           slivers.add(SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Center(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.grey.shade200,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Expanded(
-                      child: Divider(
-                        color: Colors.grey,
-                        thickness: 1.2,
-                        indent: 16,
-                        endIndent: 8,
-                      ),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: unitColor,
+                      size: 24,
                     ),
+                    const SizedBox(width: 12),
                     Text(
-                      'CHAPTER ENDED',
+                      'Unit Complete!',
                       style: TextStyle(
                         color: Colors.grey[800],
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        letterSpacing: 1,
+                        fontSize: 18,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    const Expanded(
-                      child: Divider(
-                        color: Colors.grey,
-                        thickness: 1.2,
-                        indent: 8,
-                        endIndent: 16,
-                      ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: unitColor,
+                      size: 24,
                     ),
                   ],
                 ),
@@ -624,7 +777,7 @@ class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
@@ -683,6 +836,8 @@ class ModernLevelButton extends StatefulWidget {
   final Animation<double> pulseAnimation;
   final int unitNumber;
   final Color unitColor;
+  final String lessonName;
+  final int totalLessons;
 
   const ModernLevelButton({
     super.key,
@@ -697,6 +852,8 @@ class ModernLevelButton extends StatefulWidget {
     required this.pulseAnimation,
     required this.unitColor,
     required this.slug,
+    required this.lessonName,
+    required this.totalLessons,
   });
 
   @override
@@ -736,22 +893,127 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
     if (widget.isCompleted && !widget.isCurrent) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Restart Lesson"),
-          content: const Text("Do you want to start again?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+        barrierDismissible: true,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          elevation: 8,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  widget.unitColor.withValues(alpha: 0.05),
+                ],
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                _navigateToLesson();
-              },
-              child: const Text("Yes"),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: widget.unitColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.refresh_rounded,
+                    size: 48,
+                    color: widget.unitColor,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Title
+                Text(
+                  'Restart Lesson?',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // Description
+                Text(
+                  'You\'ve already completed this lesson.\nWould you like to practice again?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+
+                // Buttons
+                Row(
+                  children: [
+                    // Cancel button
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(
+                            color: Colors.grey[300]!,
+                            width: 2,
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Restart button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _navigateToLesson();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: widget.unitColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'Restart',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       );
     } else {
@@ -782,7 +1044,7 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
         double combinedY = 0;
         double scale = _scaleAnimation.value;
 
-        if (widget.isCurrent) {
+        if (widget.isCurrent && AppConfig.showFloatingStartButton) {
           combinedY =
               widget.bounceAnimation.value + widget.floatAnimation.value;
           scale *= widget.pulseAnimation.value;
@@ -801,35 +1063,96 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
                   alignment: Alignment.center,
                   clipBehavior: Clip.none,
                   children: [
+                    // The SVG button
                     SvgPicture.asset(
                       widget.isLastInUnit
                           ? (unitColorAssetMap[widget.unitColor]?['starred'] ??
                               AssetPath.inactiveStarredSvg)
                           : (unitColorAssetMap[widget.unitColor]?['normal'] ??
                               AssetPath.inactiveStarredSvg),
-
-                      // widget.isBonus
-                      //     ? AssetPath.inactiveStarredSvg
-                      //     : (widget.isCurrent
-                      //         ? (unitColorAssetMap[widget.unitColor]
-                      //                 ?['starred'] ??
-                      //             AssetPath.purpleStarredSvg)
-                      //         : (widget.isCompleted
-                      //             ? (unitColorAssetMap[widget.unitColor]
-                      //                     ?['normal'] ??
-                      //                 AssetPath.purpleSvg)
-                      //             : (unitColorAssetMap[widget.unitColor]
-                      //                     ?['inactive'] ??
-                      //                 AssetPath.inactiveSvg))),
                     ),
+
+                    // Expanded Lesson Card for Current Lesson
                     if (widget.isCurrent)
                       Positioned(
-                        top: -20,
-                        child: Text(
-                          "START",
-                          style: Get.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        top: 85,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: widget.unitColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.lessonName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Lesson ${widget.lessonNumber} of ${widget.totalLessons}",
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              GestureDetector(
+                                onTap: _navigateToLesson,
+                                child: Container(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.1),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "START",
+                                    style: TextStyle(
+                                      color: widget.unitColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Pointer pointing UP to the icon
+                    if (widget.isCurrent)
+                      Positioned(
+                        top: 73,
+                        child: CustomPaint(
+                          size: const Size(24, 12),
+                          painter:
+                              _SpeechBubbleTailPainter(color: widget.unitColor),
                         ),
                       ),
                   ],
@@ -841,4 +1164,29 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
       },
     );
   }
+}
+
+// Speech bubble tail painter
+class _SpeechBubbleTailPainter extends CustomPainter {
+  final Color color;
+
+  _SpeechBubbleTailPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(0, size.height)
+      ..lineTo(size.width, size.height)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

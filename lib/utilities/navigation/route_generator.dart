@@ -189,13 +189,17 @@ final GoRouter goRouterConfig = GoRouter(
 class StatsObserver extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    userStatsController.getUserStats();
+    if (isLoggedIn()) {
+      userStatsController.getUserStats();
+    }
     super.didPush(route, previousRoute);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    userStatsController.getUserStats();
+    if (isLoggedIn()) {
+      userStatsController.getUserStats();
+    }
     super.didPop(route, previousRoute);
   }
 }
