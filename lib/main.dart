@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
+import 'package:lingolearn/home_module/controller/app_controller.dart';
 import 'package:lingolearn/utilities/firebase/analytics_service.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/firebase/crashlytics_service.dart';
@@ -19,8 +20,10 @@ import 'package:lingolearn/utilities/navigation/route_generator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/utilities/theme/smooth_rectangular_border.dart';
 
-final languageController = Get.put(LanguageController());
-final userStatsController = Get.put(UserStatsController());
+LanguageController get languageController => Get.find<LanguageController>();
+UserStatsController get userStatsController => Get.find<UserStatsController>();
+AppController get appController => Get.find<AppController>();
+
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage m) async {
@@ -163,6 +166,10 @@ void main() async {
     // fallback for normal messages
     await CoreNotificationService.createNotification(m);
   });
+
+  Get.put(LanguageController());
+  Get.put(UserStatsController());
+  Get.put(AppController());
 
   if (getJwtToken() != null && getJwtToken() != "") {
     await languageController.getLanguageData();

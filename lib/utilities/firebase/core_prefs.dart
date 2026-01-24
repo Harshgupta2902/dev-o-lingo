@@ -1,43 +1,44 @@
 import 'package:get_storage/get_storage.dart';
+import 'package:lingolearn/utilities/constants/storage_keys.dart';
 
 final prefs = GetStorage();
 
 setLogin(bool login) {
-  prefs.write("IS_LOGGED_IN", login);
+  prefs.write(StorageKeys.isLoggedIn, login);
 }
 
 setUuid(String uuid, String email) {
-  prefs.write("uuid", uuid);
-  prefs.write("email", email);
+  prefs.write(StorageKeys.uuid, uuid);
+  prefs.write(StorageKeys.email, email);
 }
 
 getUuid() {
-  return prefs.read("uuid");
+  return prefs.read(StorageKeys.uuid);
 }
 
 getEmailId() {
-  return prefs.read("email");
+  return prefs.read(StorageKeys.email);
 }
 
 setJwtToken(String token) {
-  prefs.write('JWT_TOKEN', token);
+  prefs.write(StorageKeys.jwtToken, token);
 }
 
 getJwtToken() {
-  return prefs.read('JWT_TOKEN');
+  return prefs.read(StorageKeys.jwtToken);
 }
 
 setFCMToken(String token) {
-  prefs.write('FCM_TOKEN', token);
+  prefs.write(StorageKeys.fcmToken, token);
 }
 
 String? getFCMToken() {
-  return prefs.read("FCM_TOKEN");
+  return prefs.read(StorageKeys.fcmToken);
 }
 
 isLoggedIn() {
-  final loggedIn = prefs.read("IS_LOGGED_IN");
-  final uuid = prefs.read("uuid");
+  final loggedIn = prefs.read(StorageKeys.isLoggedIn);
+  final uuid = prefs.read(StorageKeys.uuid);
 
   if (loggedIn == null || loggedIn == false) {
     return false;

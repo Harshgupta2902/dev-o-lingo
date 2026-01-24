@@ -6,14 +6,11 @@ class PracticeListShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: true,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-        itemBuilder: (_, __) => const PracticeTileShimmer(),
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemCount: 6, // 6 skeletons
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemBuilder: (_, __) => const PracticeTileShimmer(),
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemCount: 6, // 6 skeletons
     );
   }
 }
@@ -61,14 +58,12 @@ class PracticeTileShimmer extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // date + chips
-                          _ShimmerLine(width: 140, height: 16, radius: 6),
-                          SizedBox(height: 8),
+                          // date + chips (matches Wrap structure)
                           Row(
                             children: [
-                              _ShimmerPill(width: 80, height: 18),
+                              _ShimmerLine(width: 100, height: 16, radius: 6),
                               SizedBox(width: 8),
-                              _ShimmerPill(width: 56, height: 18),
+                              _ShimmerPill(width: 60, height: 18),
                             ],
                           ),
                           SizedBox(height: 10),
@@ -78,30 +73,16 @@ class PracticeTileShimmer extends StatelessWidget {
                           // stats row
                           Row(
                             children: [
-                              _ShimmerLine(width: 80, height: 12, radius: 4),
+                              _ShimmerLine(width: 70, height: 12, radius: 4),
                               SizedBox(width: 10),
-                              _ShimmerDot(),
+                              _ShimmerLine(width: 40, height: 12, radius: 4),
                               SizedBox(width: 10),
-                              _ShimmerLine(width: 60, height: 12, radius: 4),
-                              SizedBox(width: 10),
-                              _ShimmerLine(width: 60, height: 12, radius: 4),
+                              _ShimmerLine(width: 40, height: 12, radius: 4),
                             ],
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: 12),
-                // countdown chip + button row
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: _ShimmerPill(width: double.infinity, height: 32),
-                    ),
-                    SizedBox(width: 12),
-                    _ShimmerRect(width: 160, height: 40, radius: 12),
                   ],
                 ),
               ],

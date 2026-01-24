@@ -7,6 +7,7 @@ import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
+import 'package:lingolearn/main.dart' hide userStatsController;
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -15,7 +16,6 @@ import 'package:lingolearn/home_module/view/path_painter.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
 import 'package:lingolearn/config.dart';
 
-final languageController = Get.put(LanguageController());
 
 const List<Color> unitColors = [
   Color(0xFFA568CC),
@@ -229,27 +229,54 @@ class _LessonPathScreenState extends State<LessonPathScreen>
             return const LessonPathSkeleton();
           }
 
-          return Column(
-            children: [
-              _buildHeader(),
-              Expanded(
-                child: DuolingoLessonPathView(
-                  pathItems: pathItems,
-                  allLessons: allLessons,
-                  bounceAnimation: _bounceAnimation,
-                  floatAnimation: _floatAnimation,
-                  pulseAnimation: _pulseAnimation,
-                  units: unitsFromApi,
-                  lastCompletedId: lastCompletedId,
+          return RefreshIndicator(
+            onRefresh: _onRefresh,
+            color: unitColors[0],
+            backgroundColor: Colors.white,
+            child: Column(
+              children: [
+                Obx(() => !appController.isOnline.value
+                    ? _buildOfflineBanner()
+                    : const SizedBox.shrink()),
+                _buildHeader(),
+                Expanded(
+                  child: DuolingoLessonPathView(
+                    pathItems: pathItems,
+                    allLessons: allLessons,
+                    bounceAnimation: _bounceAnimation,
+                    floatAnimation: _floatAnimation,
+                    pulseAnimation: _pulseAnimation,
+                    units: unitsFromApi,
+                    lastCompletedId: lastCompletedId,
+                    onRefresh: _onRefresh,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
         onLoading: const LessonPathSkeleton(),
-        onError: (err) => Center(child: Text("Error: $err")),
+        onError: (err) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text("Error: $err", textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _onRefresh,
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  Future<void> _onRefresh() async {
+    await appController.refreshAllData();
   }
 
   Widget _buildHeader() {
@@ -258,23 +285,114 @@ class _LessonPathScreenState extends State<LessonPathScreen>
         return Container(
           padding:
               const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStatItem(Icons.local_fire_department,
-                  "${state?.streak ?? 0}", Colors.orange),
-              GestureDetector(
-                onTap: () => MyNavigator.pushNamed(GoPaths.shopScreen),
-                child: _buildStatItem(
-                    Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
-              ),
-              _buildStatItem(Icons.star, "${state?.xp ?? 0}", Colors.purple),
-              _buildStatItem(
-                  Icons.favorite, "${state?.hearts ?? 0}", Colors.red),
-            ],
-          ),
+          child: Obx(() => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildStatItem(Icons.local_fire_department,
+                      "${state?.streak ?? 0}", Colors.orange),
+                  GestureDetector(
+                    onTap: () => MyNavigator.pushNamed(GoPaths.shopScreen),
+                    child: _buildStatItem(
+                        Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
+                  ),
+                  _buildStatItem(
+                      Icons.star, "${state?.xp ?? 0}", Colors.purple),
+                  _buildStatItem(
+                      Icons.favorite, "${state?.hearts ?? 0}", Colors.red),
+                  if (!appController.isOnline.value)
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.cloud_off_rounded,
+                          color: Colors.orange, size: 20),
+                    ),
+                ],
+              )),
         );
       },
+    );
+  }
+
+  Widget _buildOfflineBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 44, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.orange.shade400, Colors.orange.shade600],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Offline Mode",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  "Showing last saved progress",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: _onRefresh,
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              "SYNC",
+              style: TextStyle(
+                color: Colors.orange.shade700,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -304,6 +422,7 @@ class DuolingoLessonPathView extends StatefulWidget {
   final Animation<double> floatAnimation;
   final Animation<double> pulseAnimation;
   final int? lastCompletedId;
+  final Future<void> Function() onRefresh;
 
   const DuolingoLessonPathView({
     super.key,
@@ -313,6 +432,7 @@ class DuolingoLessonPathView extends StatefulWidget {
     required this.allLessons,
     required this.pulseAnimation,
     required this.units,
+    required this.onRefresh,
     this.lastCompletedId,
   });
 
@@ -514,10 +634,20 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        CustomScrollView(
-          controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
-          slivers: _buildSliverLessonPath(),
+        RefreshIndicator(
+          onRefresh: widget.onRefresh,
+          displacement: 100,
+          color: widget.pathItems.isNotEmpty
+              ? unitColors[
+                  (widget.pathItems[0].unitIndex ?? 1 - 1) % unitColors.length]
+              : unitColors[0],
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: _buildSliverLessonPath(),
+          ),
         ),
 
         // Floating action button to scroll to START
@@ -888,6 +1018,10 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
   }
 
   void _handlePress() {
+    if (!appController.performActionWithConnection(context,
+        actionName: "start this lesson")) {
+      return;
+    }
     HapticFeedback.mediumImpact();
 
     if (widget.isCompleted && !widget.isCurrent) {
@@ -989,7 +1123,10 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          _navigateToLesson();
+                          if (appController.performActionWithConnection(context,
+                              actionName: "start this lesson")) {
+                            _navigateToLesson();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: widget.unitColor,
@@ -1112,7 +1249,13 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
                               ),
                               const SizedBox(height: 16),
                               GestureDetector(
-                                onTap: _navigateToLesson,
+                                onTap: () {
+                                  if (appController.performActionWithConnection(
+                                      context,
+                                      actionName: "start this lesson")) {
+                                    _navigateToLesson();
+                                  }
+                                },
                                 child: Container(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 12),
