@@ -5,12 +5,10 @@ import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 class PremiumScreen extends StatelessWidget {
-  final controller = Get.put(PractiseCenterController());
-
-  PremiumScreen({super.key});
-
+  const PremiumScreen({super.key});
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(PractiseCenterController());
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -109,7 +107,7 @@ class PremiumScreen extends StatelessWidget {
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -340,7 +338,7 @@ class PremiumScreen extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: Colors.white, size: 24),

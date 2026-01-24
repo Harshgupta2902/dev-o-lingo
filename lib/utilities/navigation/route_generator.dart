@@ -73,7 +73,7 @@ final GoRouter goRouterConfig = GoRouter(
           path: GoPaths.practiceCenterScreen,
           name: GoPaths.practiceCenterScreen,
           builder: (context, state) {
-            return PracticeCenterScreen();
+            return const PracticeCenterScreen();
           },
         ),
       ],
@@ -172,7 +172,7 @@ final GoRouter goRouterConfig = GoRouter(
       path: GoPaths.practisePremiumView,
       name: GoPaths.practisePremiumView,
       builder: (context, state) {
-        return PremiumScreen();
+        return const PremiumScreen();
       },
     ),
     GoRoute(
@@ -180,7 +180,7 @@ final GoRouter goRouterConfig = GoRouter(
       path: GoPaths.shopScreen,
       name: GoPaths.shopScreen,
       builder: (context, state) {
-        return ShopView();
+        return const ShopView();
       },
     ),
   ],

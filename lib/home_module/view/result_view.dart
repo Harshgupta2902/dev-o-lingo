@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lingolearn/home_module/view/dashboard_view.dart';
 import 'package:lingolearn/home_module/view/landing_view.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';

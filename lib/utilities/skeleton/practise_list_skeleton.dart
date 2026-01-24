@@ -32,7 +32,7 @@ class PracticeTileShimmer extends StatelessWidget {
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(.05),
+              color: Colors.black.withValues(alpha: .05),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -153,14 +153,6 @@ class _ShimmerCircle extends StatelessWidget {
   }
 }
 
-class _ShimmerDot extends StatelessWidget {
-  const _ShimmerDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return const _ShimmerCircle(diameter: 6);
-  }
-}
 
 class _ShimmerRect extends StatelessWidget {
   final double width;

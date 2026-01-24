@@ -327,7 +327,7 @@ class _OptionTile extends StatelessWidget {
             border: Border.all(color: border),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(.035),
+                color: Colors.black.withValues(alpha: 0.035),
                 blurRadius: 10,
                 offset: const Offset(0, 6),
               ),

@@ -144,11 +144,11 @@ class _AccountScreenState extends State<AccountScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Column(
@@ -160,7 +160,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: kPrimary.withOpacity(0.2),
+                    color: kPrimary.withValues(alpha: 0.2),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -368,11 +368,11 @@ class _UserSuggestCardState extends State<_UserSuggestCard> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Column(
@@ -476,7 +476,7 @@ class _AchievementStrip extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -491,8 +491,8 @@ class _AchievementStrip extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        kPrimary.withOpacity(0.1),
-                        kSecondary.withOpacity(0.1)
+                        kPrimary.withValues(alpha: 0.1),
+                        kSecondary.withValues(alpha: 0.1)
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -629,28 +629,28 @@ class StatsGrid extends StatelessWidget {
       _StatCardData(
         icon: Icons.local_fire_department_rounded,
         iconColor: const Color(0xFFEF4444),
-        backgroundColor: const Color(0xFFEF4444).withOpacity(0.1),
+        backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.1),
         value: "${state?.data?.stats?.streak ?? 0}",
         label: 'Day Streak',
       ),
       _StatCardData(
         icon: Icons.school_rounded,
         iconColor: const Color(0xFF8B5CF6),
-        backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.1),
+        backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
         value: "${state?.data?.lessonsCompleted ?? 0}",
         label: 'Lessons',
       ),
       _StatCardData(
         icon: Icons.diamond_rounded,
         iconColor: const Color(0xFF06B6D4),
-        backgroundColor: const Color(0xFF06B6D4).withOpacity(0.1),
+        backgroundColor: const Color(0xFF06B6D4).withValues(alpha: 0.1),
         value: "${state?.data?.stats?.gems ?? 0}",
         label: 'Diamonds',
       ),
       _StatCardData(
         icon: Icons.bolt_rounded,
         iconColor: const Color(0xFFF59E0B),
-        backgroundColor: const Color(0xFFF59E0B).withOpacity(0.1),
+        backgroundColor: const Color(0xFFF59E0B).withValues(alpha: 0.1),
         value: "${state?.data?.stats?.xp ?? 0}",
         label: 'Total XP',
       ),
@@ -699,11 +699,11 @@ class _StatCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       padding: const EdgeInsets.all(16),

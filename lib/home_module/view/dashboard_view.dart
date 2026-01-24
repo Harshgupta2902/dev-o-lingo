@@ -4,18 +4,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
-import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/main.dart' hide userStatsController;
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
+import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 import 'package:lingolearn/utilities/skeleton/lesson_path_skeleton.dart';
 import 'package:lingolearn/home_module/view/path_painter.dart';
 import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
 import 'package:lingolearn/config.dart';
-
+import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 const List<Color> unitColors = [
   Color(0xFFA568CC),
@@ -63,6 +63,9 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   List<Lessons> allLessons = [];
   List<Units> units = [];
   final List<PathItem> pathItems = [];
+  final _selectedUnit = Rxn<Units>();
+  final Map<int, GlobalKey> _unitKeys = {};
+  bool _hasScrolledToActiveUnit = false;
 
   @override
   void initState() {
@@ -139,10 +142,19 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     _floatController.repeat(reverse: true);
   }
 
+  void _onUnitSelected(Units unit) {
+    _selectedUnit.value = unit;
+  }
+
+  void _onBackToUnits() {
+    _selectedUnit.value = null;
+  }
+
   @override
   void dispose() {
     _bounceController.dispose();
     _floatController.dispose();
+    _pulseController.dispose(); // Added missing dispose for _pulseController
     super.dispose();
   }
 
@@ -166,79 +178,126 @@ class _LessonPathScreenState extends State<LessonPathScreen>
           final unitsFromApi = state.data?.units ?? <Units>[];
           final lastCompletedId = state.data?.lastCompletedLessonId;
 
-          final allLessons = unitsFromApi
-              .expand((u) => u.lessons ?? const <Lessons>[])
-              .toList();
+          return Obx(() {
+            // ---- global data marking (applies to Unit List and Lesson Path) ----
+            final allLessons = unitsFromApi
+                .expand((u) => u.lessons ?? const <Lessons>[])
+                .toList();
 
-          // mark completed/current
-          if (allLessons.isNotEmpty && lastCompletedId != null) {
-            bool unlocked = true;
-            for (final lesson in allLessons) {
-              if (lesson.id == (lastCompletedId + 1)) {
-                lesson.isCompleted = true;
-                lesson.isCurrent = true;
-                unlocked = false;
-              } else if (unlocked) {
-                lesson.isCompleted = true;
-              } else {
-                lesson.isCompleted = false;
-                lesson.isCurrent = false;
+            if (allLessons.isNotEmpty && lastCompletedId != null) {
+              bool unlocked = true;
+              for (final lesson in allLessons) {
+                if (lesson.id == (lastCompletedId + 1)) {
+                  lesson.isCompleted = true;
+                  lesson.isCurrent = true;
+                  unlocked = false;
+                } else if (unlocked) {
+                  lesson.isCompleted = true;
+                } else {
+                  lesson.isCompleted = false;
+                  lesson.isCurrent = false;
+                }
               }
             }
-          }
 
-          // build pathItems locally
-          final pathItems = <PathItem>[];
-          int currentLessonIndex = 0;
-          int pathItemIndex = 0;
-          int unitCounter = 1;
+            if (_selectedUnit.value == null) {
+              return Column(
+                children: [
+                  Obx(() => !appController.isOnline.value
+                      ? _buildOfflineBanner()
+                      : const SizedBox.shrink()),
+                  _buildHeader(),
+                  Expanded(
+                    child: LiquidPullToRefresh(
+                      onRefresh: _onRefresh,
+                      color: kPrimary,
+                      backgroundColor: Colors.white,
+                      animSpeedFactor: 2.0,
+                      child: Builder(builder: (context) {
+                        // Calculate active index once per refresh
+                        int activeIndex = 0;
+                        if (lastCompletedId != null) {
+                          for (int i = 0; i < unitsFromApi.length; i++) {
+                            if (unitsFromApi[i].lessons?.any(
+                                    (l) => l.id == (lastCompletedId + 1)) ??
+                                false) {
+                              activeIndex = i;
+                              break;
+                            }
+                          }
+                        }
 
-          for (final unit in unitsFromApi) {
+                        // Trigger scroll animation
+                        if (!_hasScrolledToActiveUnit &&
+                            unitsFromApi.isNotEmpty) {
+                          _hasScrolledToActiveUnit = true;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            final key = _unitKeys[activeIndex];
+                            if (key?.currentContext != null) {
+                              Scrollable.ensureVisible(
+                                key!.currentContext!,
+                                duration: const Duration(milliseconds: 1000),
+                                curve: Curves.easeInOutCubic,
+                                alignment: 0.5,
+                              );
+                            }
+                          });
+                        }
+
+                        return ListView(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          children: List.generate(unitsFromApi.length, (index) {
+                            final unit = unitsFromApi[index];
+                            final color = unitColors[index % unitColors.length];
+                            _unitKeys[index] ??= GlobalKey();
+
+                            return UnitCard(
+                              key: _unitKeys[index],
+                              unit: unit,
+                              unitIndex: index + 1,
+                              color: color,
+                              onTap: () => _onUnitSelected(unit),
+                            );
+                          }),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            // ---- derive view-model for SELECTED unit ----
+            final selectedUnitLessons =
+                _selectedUnit.value!.lessons ?? const <Lessons>[];
+
+            // build pathItems for the selected unit
+            final pathItems = <PathItem>[];
+            int pathItemIndex = 0;
+
             pathItems.add(PathItem(
               type: 'unit',
-              data: unit,
+              data: _selectedUnit.value!,
               pathIndex: pathItemIndex++,
-              unitIndex: unitCounter,
+              unitIndex: unitsFromApi.indexOf(_selectedUnit.value!) + 1,
             ));
 
-            final count = unit.lessonCount ?? (unit.lessons?.length ?? 0);
-            for (int i = 0; i < count; i++) {
-              if (currentLessonIndex < allLessons.length) {
-                pathItems.add(PathItem(
-                  type: 'lesson',
-                  data: allLessons[currentLessonIndex],
-                  pathIndex: pathItemIndex++,
-                  unitIndex: unitCounter,
-                ));
-                currentLessonIndex++;
-              }
+            for (final lesson in selectedUnitLessons) {
+              pathItems.add(PathItem(
+                type: 'lesson',
+                data: lesson,
+                pathIndex: pathItemIndex++,
+                unitIndex: unitsFromApi.indexOf(_selectedUnit.value!) + 1,
+              ));
             }
-            unitCounter++;
-          }
-          while (currentLessonIndex < allLessons.length) {
-            pathItems.add(PathItem(
-              type: 'lesson',
-              data: allLessons[currentLessonIndex],
-              pathIndex: pathItemIndex++,
-            ));
-            currentLessonIndex++;
-          }
 
-          // if nothing yet, show skeleton
-          if (pathItems.isEmpty) {
-            return const LessonPathSkeleton();
-          }
-
-          return RefreshIndicator(
-            onRefresh: _onRefresh,
-            color: unitColors[0],
-            backgroundColor: Colors.white,
-            child: Column(
+            return Column(
               children: [
                 Obx(() => !appController.isOnline.value
                     ? _buildOfflineBanner()
                     : const SizedBox.shrink()),
-                _buildHeader(),
+                _buildLessonHeader(),
                 Expanded(
                   child: DuolingoLessonPathView(
                     pathItems: pathItems,
@@ -246,16 +305,17 @@ class _LessonPathScreenState extends State<LessonPathScreen>
                     bounceAnimation: _bounceAnimation,
                     floatAnimation: _floatAnimation,
                     pulseAnimation: _pulseAnimation,
-                    units: unitsFromApi,
+                    units: [_selectedUnit.value!],
                     lastCompletedId: lastCompletedId,
                     onRefresh: _onRefresh,
                   ),
                 ),
               ],
-            ),
-          );
+            );
+          });
         },
-        onLoading: const LessonPathSkeleton(),
+        onLoading: Obx(
+            () => LessonPathSkeleton(isUnitList: _selectedUnit.value == null)),
         onError: (err) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -275,7 +335,52 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     );
   }
 
+  Widget _buildLessonHeader() {
+    final unitIndex =
+        (languageController.state?.data?.units?.indexOf(_selectedUnit.value!) ??
+                0) +
+            1;
+    final color = unitColors[(unitIndex - 1) % unitColors.length];
+
+    return Container(
+      padding: const EdgeInsets.only(top: 40, left: 10, right: 20, bottom: 10),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: _onBackToUnits,
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.grey, size: 20),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "UNIT $unitIndex",
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                Text(
+                  _selectedUnit.value?.name ?? "Lessons",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _onRefresh() async {
+    _hasScrolledToActiveUnit = false;
     await appController.refreshAllData();
   }
 
@@ -634,9 +739,10 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        RefreshIndicator(
+        LiquidPullToRefresh(
+          backgroundColor: Colors.white,
+          animSpeedFactor: 2.0,
           onRefresh: widget.onRefresh,
-          displacement: 100,
           color: widget.pathItems.isNotEmpty
               ? unitColors[
                   (widget.pathItems[0].unitIndex ?? 1 - 1) % unitColors.length]
@@ -678,41 +784,20 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
   List<Widget> _buildSliverLessonPath() {
     List<Widget> slivers = [];
 
-    if (_currentUnitIndex != null &&
-        _currentUnitIndex! < widget.pathItems.length &&
-        widget.pathItems[_currentUnitIndex!].type == 'unit') {
-      final unitData = widget.pathItems[_currentUnitIndex!].data as Units;
-      final unitIndex = widget.pathItems[_currentUnitIndex!].unitIndex ?? 1;
-
-      slivers.add(SliverPersistentHeader(
-        pinned: true,
-        delegate: _UnitHeaderDelegate(
-          title: unitData.name ?? "",
-          unitId: unitIndex,
-          // ← safe
-          externalId: unitData.externalId ?? "",
-          isActive: true,
-          unitColor: unitColors[(unitIndex - 1) % unitColors.length],
-        ),
-      ));
-    }
+    // Add some top padding
+    slivers.add(const SliverToBoxAdapter(child: SizedBox(height: 20)));
 
     for (int i = 0; i < widget.pathItems.length; i++) {
       final item = widget.pathItems[i];
       if (item.type == 'unit') {
-        slivers.add(
-          SliverToBoxAdapter(
-            child: Container(
-              key: _lessonKeys[item.pathIndex],
-              height: 1,
-              color: Colors.transparent,
-            ),
-          ),
-        );
+        // Skip unit header inside the list as we have a pinned one in LessonPathScreen
+        continue;
       } else {
         final lessonData = item.data as Lessons;
         final lessonNumber = item.unitIndex ?? 0;
-        final translateX = 80 * math.sin((item.pathIndex * 120) / 100);
+
+        // Refined snake path: uses pathIndex to create a symmetric horizontal wave
+        final translateX = 60 * math.sin((i * 1.0));
         final unitNumber = lessonData.id ?? 0;
         final unitColor = unitColors[(lessonNumber - 1) % unitColors.length];
         final slug = lessonData.externalId;
@@ -867,93 +952,6 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
   }
 }
 
-class _UnitHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final String title;
-  final num unitId;
-  final String externalId;
-  final bool isActive;
-  final Color unitColor;
-
-  _UnitHeaderDelegate({
-    required this.externalId,
-    required this.unitId,
-    required this.title,
-    required this.isActive,
-    required this.unitColor,
-  });
-
-  @override
-  double get maxExtent => 86;
-
-  @override
-  double get minExtent => 86;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      alignment: Alignment.centerLeft,
-      decoration: AppBoxDecoration.getBoxDecoration(
-        color: unitColor,
-        borderRadius: 16,
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => debugPrint("external id $externalId"),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(
-                isActive ? Icons.play_arrow : Icons.lock,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Unit $unitId",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _UnitHeaderDelegate oldDelegate) {
-    return title != oldDelegate.title ||
-        isActive != oldDelegate.isActive ||
-        unitColor != oldDelegate.unitColor;
-  }
-}
-
 class ModernLevelButton extends StatefulWidget {
   final int lessonNumber;
   final String slug;
@@ -1023,6 +1021,11 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
       return;
     }
     HapticFeedback.mediumImpact();
+
+    if (!widget.isCompleted && !widget.isCurrent) {
+      // Locked lesson, do nothing or show a brief toast
+      return;
+    }
 
     if (widget.isCompleted && !widget.isCurrent) {
       showDialog(
@@ -1202,11 +1205,17 @@ class _ModernLevelButtonState extends State<ModernLevelButton>
                   children: [
                     // The SVG button
                     SvgPicture.asset(
-                      widget.isLastInUnit
-                          ? (unitColorAssetMap[widget.unitColor]?['starred'] ??
-                              AssetPath.inactiveStarredSvg)
-                          : (unitColorAssetMap[widget.unitColor]?['normal'] ??
-                              AssetPath.inactiveStarredSvg),
+                      (!widget.isCompleted && !widget.isCurrent)
+                          ? (widget.isLastInUnit
+                              ? AssetPath.inactiveStarredSvg
+                              : AssetPath.inactiveSvg)
+                          : (widget.isLastInUnit
+                              ? (unitColorAssetMap[widget.unitColor]
+                                      ?['starred'] ??
+                                  AssetPath.inactiveStarredSvg)
+                              : (unitColorAssetMap[widget.unitColor]
+                                      ?['normal'] ??
+                                  AssetPath.inactiveSvg)),
                     ),
 
                     // Expanded Lesson Card for Current Lesson
@@ -1332,4 +1341,137 @@ class _SpeechBubbleTailPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class UnitCard extends StatelessWidget {
+  final Units unit;
+  final int unitIndex;
+  final Color color;
+  final VoidCallback onTap;
+
+  const UnitCard({
+    super.key,
+    required this.unit,
+    required this.unitIndex,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate progress
+    int completedCount =
+        unit.lessons?.where((l) => l.isCompleted == true).length ?? 0;
+    int totalCount = unit.lessons?.length ?? 0;
+    if (totalCount == 0) totalCount = unit.lessonCount?.toInt() ?? 1;
+    double progress = totalCount > 0 ? (completedCount / totalCount) : 0;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: AppBoxDecoration.getBoxDecoration(
+          color: Colors.white,
+          borderRadius: 24,
+        ),
+        child: Column(
+          children: [
+            // Top Section with Color
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "UNIT $unitIndex",
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          unit.name ?? "",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Bottom Section with Progress
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${(progress * 100).toInt()}% COMPLETE",
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
+                        "$completedCount/$totalCount Lessons",
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                      minHeight: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

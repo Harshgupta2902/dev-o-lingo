@@ -71,7 +71,6 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
   late AnimationController _radiusController;
   late Animation<double> _radiusAnimation;
 
-  late Animation<double> _childOpacityAnimation;
 
   late AnimationController _positionController;
   late Animation<double> _value;
@@ -84,8 +83,6 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
 
   static final Animatable<double> _threeQuarterTween =
       Tween<double>(begin: 0.0, end: 0.75);
-  static final Animatable<double> _oneToZeroTween =
-      Tween<double>(begin: 1.0, end: 0.0);
 
   @override
   void initState() {
@@ -155,7 +152,6 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
     _positionController = AnimationController(vsync: this);
     _value = _positionController.drive(_threeQuarterTween);
 
-    _childOpacityAnimation = _positionController.drive(_oneToZeroTween);
   }
 
   @override
@@ -164,9 +160,9 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
     _valueColor = _positionController.drive(
       ColorTween(
               begin: (widget.color ?? theme.colorScheme.secondary)
-                  .withOpacity(0.0),
+                  .withValues(alpha: 0.0),
               end: (widget.color ?? theme.colorScheme.secondary)
-                  .withOpacity(1.0))
+                  .withValues(alpha: 1.0))
           .chain(CurveTween(
               curve: const Interval(0.0, 1.0 / _kDragSizeFactorLimit))),
     );
@@ -382,7 +378,7 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
     _positionController.value =
         newValue.clamp(0.0, 1.0); // this triggers various rebuilds
     if (_mode == _LiquidPullToRefreshMode.drag &&
-        _valueColor.value!.alpha == 0xFF) {
+        _valueColor.value!.a == 1.0) {
       _mode = _LiquidPullToRefreshMode.armed;
     }
   }
@@ -500,20 +496,6 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
               offset: Offset(0.0, dy),
               child: child,
             );
-
-            if (widget.showChildOpacityTransition) {
-              return Opacity(
-                  // -0.01 is done for elasticOut curve
-                  opacity: (widget.showChildOpacityTransition)
-                      ? (_childOpacityAnimation.value - (1 / 3) - 0.01)
-                          .clamp(0.0, 1.0)
-                      : 1.0,
-                  child: child);
-            }
-            return Transform.translate(
-              offset: Offset(0.0, _positionController.value * height * 1.5),
-              child: child,
-            );
           },
         ),
         AnimatedBuilder(
@@ -545,7 +527,7 @@ class LiquidPullToRefreshState extends State<LiquidPullToRefresh>
             );
           },
         ),
-        Container(
+        SizedBox(
           height: height, //100.0
           child: AnimatedBuilder(
             animation: Listenable.merge([
@@ -620,7 +602,7 @@ class CurveHillClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    var path = new Path();
+    var path = Path();
     if (size.height >= centreHeight) {
       if (curveHeight > (size.height - centreHeight)) {
         curveHeight = size.height - centreHeight;
@@ -673,7 +655,7 @@ class CircularProgress extends StatefulWidget {
   final double startAngle;
 
   const CircularProgress({
-    Key? key,
+    super.key,
     required this.innerCircleRadius,
     required this.progressPercent,
     required this.progressCircleRadius,
@@ -681,10 +663,10 @@ class CircularProgress extends StatefulWidget {
     required this.backgroundColor,
     required this.progressCircleOpacity,
     required this.startAngle,
-  }) : super(key: key);
+  });
 
   @override
-  _CircularProgressState createState() => _CircularProgressState();
+  State<CircularProgress> createState() => _CircularProgressState();
 }
 
 class _CircularProgressState extends State<CircularProgress> {
@@ -693,14 +675,14 @@ class _CircularProgressState extends State<CircularProgress> {
     double containerLength =
         2 * max(widget.progressCircleRadius, widget.innerCircleRadius);
 
-    return Container(
+    return SizedBox(
       height: containerLength,
       width: containerLength,
       child: Stack(
         children: <Widget>[
           Opacity(
             opacity: widget.progressCircleOpacity,
-            child: Container(
+            child: SizedBox(
               height: widget.progressCircleRadius * 2,
               width: widget.progressCircleRadius * 2,
               child: CustomPaint(

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class LessonPathSkeleton extends StatelessWidget {
-  const LessonPathSkeleton({super.key});
+  final bool isUnitList;
+  const LessonPathSkeleton({super.key, this.isUnitList = false});
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +19,17 @@ class LessonPathSkeleton extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // 🔹 Fake lesson path (scrollable)
+        // 🔹 Fake content (scrollable)
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             physics: const BouncingScrollPhysics(),
-            itemCount: 12, // placeholder lessons
+            itemCount: 8,
             itemBuilder: (context, i) {
+              if (isUnitList) {
+                return _unitCardSkeleton();
+              }
+              
               final offset = (i % 2 == 0) ? 40.0 : -40.0;
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
@@ -39,6 +44,21 @@ class LessonPathSkeleton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _unitCardSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+      ),
     );
   }
 

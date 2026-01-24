@@ -55,7 +55,7 @@ messageScaffold({
       margin: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.0),
-        side: BorderSide(color: mainColor.withOpacity(0.2), width: 1),
+        side: BorderSide(color: mainColor.withValues(alpha: 0.2), width: 1),
       ),
       content: Container(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -65,7 +65,7 @@ messageScaffold({
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: mainColor.withOpacity(0.1),
+                color: mainColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(

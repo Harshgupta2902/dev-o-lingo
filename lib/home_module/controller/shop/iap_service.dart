@@ -208,7 +208,7 @@ class IAPService extends GetxService {
   }
 
   void _toast(String title, String msg) {
-    print(msg);
+    debugPrint(msg);
     Get.snackbar(title, msg);
   }
 

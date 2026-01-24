@@ -113,14 +113,10 @@ class PracticeTile extends StatefulWidget {
 class _PracticeTileState extends State<PracticeTile>
     with AutomaticKeepAliveClientMixin {
   Timer? _ticker;
-  Duration _remaining = Duration.zero;
-  DateTime? _target;
 
   // --- Normalized helpers ---
   String get _status =>
-      (widget.item.status ?? '').toString().toLowerCase().trim();
-  bool get _isAvailable => _status == 'available';
-  bool get _ctaEnabled => _isAvailable && widget.item.practiceId != null;
+      widget.item.status.toString().toLowerCase().trim();
 
   @override
   void initState() {
@@ -150,43 +146,21 @@ class _PracticeTileState extends State<PracticeTile>
   @override
   bool get wantKeepAlive => true;
 
-  DateTime _endOfDay(DateTime d) =>
-      DateTime(d.year, d.month, d.day, 23, 59, 59);
 
-  int get _done => widget.item.done ?? 0;
-  int get _total => widget.item.total ?? 0;
+  int get _done => widget.item.done;
+  int get _total => widget.item.total;
   bool get _isInProgress => (widget.item.isToday == true) && _done < _total;
   String get _uiStatus => _isInProgress ? 'available' : _status;
   void _computeTargetAndStart() {
     _ticker?.cancel();
 
     if ((_uiStatus == 'available') && (widget.item.isToday == true)) {
-      _target = _endOfDay(DateTime.now());
-      _tick();
-      _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+      _ticker = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
     } else {
-      _target = null;
-      _remaining = Duration.zero;
       if (mounted) setState(() {});
     }
   }
 
-  void _tick() {
-    if (!mounted || _target == null) return;
-    final diff = _target!.difference(DateTime.now());
-    setState(() {
-      _remaining = diff.isNegative ? Duration.zero : diff;
-    });
-  }
-
-  String _fmtDur(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes % 60;
-    final s = d.inSeconds % 60;
-    return '${h.toString().padLeft(2, '0')}:'
-        '${m.toString().padLeft(2, '0')}:'
-        '${s.toString().padLeft(2, '0')}';
-  }
 
   String _prettyDate(String ymd) {
     try {
@@ -255,7 +229,7 @@ class _PracticeTileState extends State<PracticeTile>
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(.05),
+                color: Colors.black.withValues(alpha: .05),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),

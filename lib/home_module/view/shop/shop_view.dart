@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lingolearn/home_module/controller/shop/iap_service.dart';
 import 'package:lingolearn/home_module/controller/shop/shop_controller.dart';
 import 'package:lingolearn/home_module/models/shop/shop_model.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
@@ -227,7 +226,7 @@ class _ProductCard extends StatelessWidget {
         border: Border.all(color: kBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

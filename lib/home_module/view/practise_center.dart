@@ -2,19 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/practise_center_controller.dart';
 import 'package:lingolearn/utilities/common/core_app_bar.dart';
-import 'package:lingolearn/utilities/navigation/go_paths.dart';
-import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 import '../models/review_models.dart';
 
 class PracticeCenterScreen extends StatelessWidget {
-  final controller = Get.put(PractiseCenterController());
-
-  PracticeCenterScreen({super.key});
+  const PracticeCenterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(PractiseCenterController());
+
     return Scaffold(
       backgroundColor: kSurface,
       body: SafeArea(
@@ -35,7 +33,6 @@ class PracticeCenterScreen extends StatelessWidget {
     final List<ReviewItem> reviewData = state?.data ?? [];
     final wrong = reviewData.where((e) => e.type == 'wrong').toList();
     final skipped = reviewData.where((e) => e.type == 'skipped').toList();
-    final totalMistakes = reviewData.length;
 
     return Column(
       children: [
@@ -231,7 +228,7 @@ class PracticeCenterScreen extends StatelessWidget {
         border: Border.all(color: kBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -349,7 +346,7 @@ class _EmptyView extends StatelessWidget {
           Container(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: successBackground,
               shape: BoxShape.circle,
             ),
@@ -399,7 +396,7 @@ class _ErrorView extends StatelessWidget {
             Container(
               width: 100,
               height: 100,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: errorBackground,
                 shape: BoxShape.circle,
               ),
