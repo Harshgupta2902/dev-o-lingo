@@ -218,14 +218,15 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _submitResultsWithAd(Future<void> Function() doSubmit) async {
-    try {
-      await AdsHelper.showInterstitialAd(
-        onDismissed: () async => await doSubmit(),
-        onFailedToLoad: () async => await doSubmit(),
-      );
-    } catch (_) {
-      await doSubmit();
-    }
+    // try {
+    //   await AdsHelper.showInterstitialAd(
+    //     onDismissed: () async => await doSubmit(),
+    //     onFailedToLoad: () async => await doSubmit(),
+    //   );
+    // } catch (_) {
+    //   await doSubmit();
+    // }
+    await doSubmit();
   }
 
   @override

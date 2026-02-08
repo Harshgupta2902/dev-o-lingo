@@ -395,11 +395,8 @@ class _LessonPathScreenState extends State<LessonPathScreen>
                 children: [
                   _buildStatItem(Icons.local_fire_department,
                       "${state?.streak ?? 0}", Colors.orange),
-                  GestureDetector(
-                    onTap: () => MyNavigator.pushNamed(GoPaths.shopScreen),
-                    child: _buildStatItem(
-                        Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
-                  ),
+                  _buildStatItem(
+                      Icons.diamond, "${state?.gems ?? 0}", Colors.blue),
                   _buildStatItem(
                       Icons.star, "${state?.xp ?? 0}", Colors.purple),
                   _buildStatItem(

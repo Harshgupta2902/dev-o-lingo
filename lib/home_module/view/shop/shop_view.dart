@@ -265,8 +265,10 @@ class _ProductCard extends StatelessWidget {
                 colorA: colorA,
                 colorB: colorB,
                 onTap: () async {
-                  // final iap = Get.put(IAPService());
-                  // await iap.purchase(item);
+                  /*
+                  final iap = Get.put(IAPService());
+                  await iap.purchase(item);
+                  */
                 },
               ),
             ],

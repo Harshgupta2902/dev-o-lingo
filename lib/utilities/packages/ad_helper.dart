@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdsHelper {
-  static bool showAds = true;
+  static bool showAds = false;
 
   static Future<void> initialize() async {
     await MobileAds.instance.initialize();

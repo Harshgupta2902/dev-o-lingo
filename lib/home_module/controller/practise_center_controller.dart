@@ -7,7 +7,7 @@ import 'package:lingolearn/utilities/dio/api_request.dart';
 
 class PractiseCenterController extends GetxController
     with StateMixin<ReviewResponseModel> {
-  final RxBool isPremium = false.obs;
+  final RxBool isPremium = true.obs;
 
   @override
   void onInit() {
