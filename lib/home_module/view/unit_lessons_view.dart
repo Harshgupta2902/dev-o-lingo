@@ -471,12 +471,6 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
       final item = widget.pathItems[i];
       if (item.type == 'unit') continue;
       final lessonData = item.data as Lessons;
-
-      if (kDebugMode) {
-        print(
-            "🛠️ [Builder] Lesson: ${lessonData.name}, id: ${lessonData.id}, index: $i, isCompleted: ${lessonData.isCompleted}, isCurrent: ${lessonData.isCurrent}");
-      }
-
       final isLastInUnit = lessonData.id == widget.units.first.lessons?.last.id;
       final isFirstInUnit =
           i == 0 || (i > 0 && widget.pathItems[i - 1].type == 'unit');
@@ -726,7 +720,6 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-
 class UnitOverviewCard extends StatelessWidget {
   final Units unit;
   final Color unitColor;
@@ -750,11 +743,13 @@ class UnitOverviewCard extends StatelessWidget {
       child: CourseOverviewCard(
         description: data.description,
         themeColor: unitColor,
-        resources: data.resources.map((r) => OverviewResource(
-          type: r.type,
-          title: r.title,
-          url: r.url,
-        )).toList(),
+        resources: data.resources
+            .map((r) => OverviewResource(
+                  type: r.type,
+                  title: r.title,
+                  url: r.url,
+                ))
+            .toList(),
       ),
     );
   }

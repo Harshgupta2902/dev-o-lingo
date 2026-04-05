@@ -6,6 +6,7 @@ import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
 import 'package:lingolearn/home_module/view/follows_screen.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
+import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';

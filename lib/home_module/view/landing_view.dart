@@ -4,6 +4,7 @@ import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
 import 'package:lingolearn/home_module/view/bottom_navigation.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
+import 'package:lingolearn/main.dart';
 
 final languageController = Get.put(LanguageController());
 final profileController = Get.put(ProfileController());
