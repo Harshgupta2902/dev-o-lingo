@@ -72,6 +72,7 @@ class Units {
     this.sortOrder,
     this.name,
     this.externalId,
+    this.description,
     this.lessonCount,
   });
 
@@ -81,6 +82,7 @@ class Units {
     sortOrder = json['sort_order'];
     name = json['name'];
     externalId = json['external_id'];
+    description = json['description'];
     if (json['lessons'] != null) {
       lessons = [];
       json['lessons'].forEach((v) {
@@ -94,6 +96,7 @@ class Units {
   num? sortOrder;
   String? name;
   String? externalId;
+  String? description;
   List<Lessons>? lessons;
   num? lessonCount;
 
@@ -118,6 +121,7 @@ class Lessons {
     this.unitId,
     this.name,
     this.externalId,
+    this.description,
     this.isCompleted = false,
     this.isCurrent = false,
   });
@@ -127,6 +131,7 @@ class Lessons {
     unitId = json['unit_id'];
     name = json['name'];
     externalId = json['external_id'];
+    description = json['description'];
     isCompleted = false;
     isCurrent = false;
   }
@@ -135,6 +140,7 @@ class Lessons {
   num? unitId;
   String? name;
   String? externalId;
+  String? description;
   bool? isCompleted;
   bool? isCurrent;
 
@@ -144,6 +150,7 @@ class Lessons {
     map['unit_id'] = unitId;
     map['name'] = name;
     map['external_id'] = externalId;
+    map['description'] = description;
     return map;
   }
 }

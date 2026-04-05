@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
@@ -46,7 +47,7 @@ class LanguageController extends GetxController
         postData: {"email": getEmailId()},
       );
 
-      debugPrint("LanguageController => getLanguageData > Success  $response");
+      log("LanguageController => getLanguageData > Success  $response");
 
       final responseData =
           response.data is String ? jsonDecode(response.data) : response.data;
@@ -54,7 +55,7 @@ class LanguageController extends GetxController
       // Cache the response
       prefs.write(StorageKeys.languageDataCache, responseData);
       isCached.value = false;
-      
+
       // Update global online status
       Get.find<AppController>().isOnline.value = true;
 
@@ -79,4 +80,3 @@ class LanguageController extends GetxController
     }
   }
 }
-
