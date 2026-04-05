@@ -22,4 +22,5 @@ class GoPaths {
   static const String shopScreen = '/ShopScreen';
   static const String practisePremiumView = '/practisePremiumView';
 
+  static const String unitLessonsView = '/unitLessonsView';
 }

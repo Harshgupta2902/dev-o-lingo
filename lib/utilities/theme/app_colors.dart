@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:lingolearn/utilities/constants/assets_path.dart';
 
-//  Common COLORS
-const Color kPrimary = Color(0xFF6366F1);
-const Color kSecondary = Color(0xFF8B5CF6);
-const Color kAccent = Color(0xFF10B981);
-const Color kSurface = Color(0xFFFAFAFA);
-const Color kOnSurface = Color(0xFF1F2937);
-const Color kMuted = Color(0xFF6B7280);
-const Color kBorder = Color(0xFFE5E7EB);
+// --- Premium Warm Pastel Palette ---
+const Color kBeigeBg = Color(0xFFFDFBF4);
+const Color kSoftGray = Color(0xFF9CA3AF);
+const Color kDarkSlate = Color(0xFF1F2937);
+const Color kAmberAccent = Color(0xFFF59E0B);
+const Color kSandyBorder = Color(0xFFEFECCF);
 
-//  Message Scaffold COLORS
+// --- Global Theme Tokens ---
+const Color kPrimary = Color(0xFFEFECCF); // Warm Sandy Primary
+const Color kSecondary = Color(0xFFC4B889);
+const Color kAccent = kAmberAccent;
+const Color kSurface = kBeigeBg;
+const Color kOnSurface = kDarkSlate;
+const Color kMuted = kSoftGray;
+const Color kBorder = kSandyBorder;
+
+// --- Unit Card Pastel Palette ---
+const Color kCardPurple = Color(0xFFE5DEFF);
+const Color kCardOrange = Color(0xFFFFF4E5);
+const Color kCardGreen = Color(0xFFD9F2E6);
+const Color kCardPink = Color(0xFFFFE5F1);
+const Color kCardYellow = Color(0xFFFFF7D6);
+const Color kCardBlue = Color(0xFFE5F1FF);
+
+const List<Color> unitCardColors = [
+  kCardPurple,
+  kCardOrange,
+  kCardGreen,
+  kCardPink,
+  kCardYellow,
+  kCardBlue,
+];
+
+// --- Legacy / Functional Colors (Harmonized) ---
 const Color successBackground = Color(0xFFF0FDF4);
 const Color successMain = Color(0xFF10B981);
 const Color errorBackground = Color(0xFFFEF2F2);
@@ -18,19 +43,44 @@ const Color warningBackground = Color(0xFFFFFBEB);
 const Color warningMain = Color(0xFFF59E0B);
 const Color infoBackground = Color(0xFFF0F9FF);
 const Color infoMain = Color(0xFF3B82F6);
-const Color surface = Color(0xFFFAFAFA);
-const Color onSurface = Color(0xFF1F2937);
-const Color border = Color(0xFFE5E7EB);
-
-//  Quiz Screen COLORS
-const Color primary = Color(0xFF6366F1);
-const Color secondary = Color(0xFF8B5CF6);
-const Color success = Color(0xFF10B981);
-const Color error = Color(0xFFEF4444);
-const Color warning = Color(0xFFF59E0B);
-const Color cardSurface = Color(0xFFFFFFFF);
-const Color muted = Color(0xFF6B7280);
+const Color surface = kSurface;
+const Color onSurface = kOnSurface;
+const Color border = kBorder;
+const Color cardSurface = Colors.white;
+const Color selectedBackground = Color(0xFFEFECCF);
+const Color selectedBorder = Color(0xFFC4B889);
+const Color primary = Color(0xFF4B5563);
+const Color secondary = Color(0xFF9CA3AF);
+const Color muted = kMuted;
+const Color success = successMain;
+const Color error = errorMain;
+const Color warning = warningMain;
 const Color successBorder = Color(0xFFBBF7D0);
 const Color errorBorder = Color(0xFFFECACA);
-const Color selectedBackground = Color(0xFFF0F9FF);
-const Color selectedBorder = Color(0xFFBAE6FD);
+
+const List<Color> unitColors = [
+  Color(0xFFA568CC),
+  Color(0xFFFF981F),
+  Color(0xFF543ACC)
+];
+
+final Map<Color, Map<String, String>> unitColorAssetMap = {
+  const Color(0xFFA568CC): {
+    'normal': AssetPath.purpleSvg,
+    'starred': AssetPath.purpleStarredSvg,
+    'inactive': AssetPath.inactiveSvg,
+    'inactive_starred': AssetPath.inactiveStarredSvg,
+  },
+  const Color(0xFFFF981F): {
+    'normal': AssetPath.yellowSvg,
+    'starred': AssetPath.yellowStarredSvg,
+    'inactive': AssetPath.inactiveSvg,
+    'inactive_starred': AssetPath.inactiveStarredSvg,
+  },
+  const Color(0xFF543ACC): {
+    'normal': AssetPath.blueSvg,
+    'starred': AssetPath.blueStarredSvg,
+    'inactive': AssetPath.inactiveSvg,
+    'inactive_starred': AssetPath.inactiveStarredSvg,
+  },
+};

@@ -14,6 +14,7 @@ import 'package:lingolearn/auth_module/view/onboarding_view.dart';
 import 'package:lingolearn/home_module/view/exercises_view.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/home_module/view/result_view.dart';
+import 'package:lingolearn/home_module/view/unit_lessons_view.dart';
 import 'package:lingolearn/home_module/view/shop/shop_view.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
@@ -181,6 +182,22 @@ final GoRouter goRouterConfig = GoRouter(
       name: GoPaths.shopScreen,
       builder: (context, state) {
         return const ShopView();
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.unitLessonsView,
+      name: GoPaths.unitLessonsView,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final selectedUnit = extras['selectedUnit'];
+        final units = extras['units'];
+        final lastCompletedId = extras['lastCompletedId'];
+        return UnitLessonsView(
+          selectedUnit: selectedUnit,
+          units: units,
+          lastCompletedId: lastCompletedId,
+        );
       },
     ),
   ],
