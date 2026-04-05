@@ -5,10 +5,7 @@ import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
-import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
-
-// {correctCount: 1, wrongCount: 7, earnedXP: 4, earnedGems: 1, heartsLeft: 0, percentage: 13, tagline: {title: 💪 Don’t give up! Try again!, desc: ⚡ Lightning fast!}, time: 0:09}
 
 class ResultScreen extends StatefulWidget {
   final int totalQuestions;
@@ -30,11 +27,11 @@ class ResultScreen extends StatefulWidget {
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
-class _ResultScreenState extends State<ResultScreen>
-    with TickerProviderStateMixin {
+class _ResultScreenState extends State<ResultScreen> with TickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 700))
-    ..forward();
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  )..forward();
 
   @override
   void dispose() {
@@ -42,296 +39,273 @@ class _ResultScreenState extends State<ResultScreen>
     super.dispose();
   }
 
-  String get formattedTime {
-    final totalMs = widget.totalDurationMs;
-    final minutes = (totalMs ~/ 60000);
-    final seconds = ((totalMs % 60000) ~/ 1000);
-    return '${minutes.toString().padLeft(1, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final slideTween =
-        Tween<Offset>(begin: const Offset(0, .04), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7FB),
+      backgroundColor: kSurface,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: Column(
-            children: [
-              const SizedBox(height: 6),
-              const Text(
-                "Lesson completed!",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF5B5BD6)),
-              ),
-              const SizedBox(height: 16),
-
-              // Illustration (network image from your provided URL)
-              SlideTransition(
-                position: _controller.drive(slideTween),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: SvgPicture.asset(
-                    AssetPath.hiImg,
-                    height: 180,
-                  ),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+                    _buildIllustration(),
+                    const SizedBox(height: 32),
+                    _buildTitle(),
+                    const SizedBox(height: 8),
+                    _buildTagline(),
+                    const SizedBox(height: 40),
+                    _buildGemReward(),
+                    const SizedBox(height: 24),
+                    _buildStatsGrid(),
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: kToolbarHeight),
-
-              // Diamonds card (gradient)
-              _DiamondsCard(count: widget.data['earnedGems']),
-
-              const SizedBox(height: kToolbarHeight),
-
-              // Stats row
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      label: "XP Earned",
-                      icon: Icons.bolt_rounded,
-                      color: const Color(0xFFFFA94D),
-                      child: AnimatedCount(
-                        end: widget.data['earnedXP'],
-                        suffix: "",
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      label: "Time",
-                      icon: Icons.timer_rounded,
-                      color: const Color(0xFF5AD2B6),
-                      child: AnimatedCount(
-                        end: widget.totalDurationMs,
-                        formatter: (v) {
-                          final m = (v ~/ 60000);
-                          final s = ((v % 60000) ~/ 1000);
-                          return '${m.toString().padLeft(1, '0')}:${s.toString().padLeft(2, '0')}';
-                        },
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      label: "Accuracy",
-                      icon: Icons.pie_chart_rounded,
-                      color: const Color(0xFFFF6B6B),
-                      child: AnimatedCount(
-                        end: widget.data['percentage'],
-                        suffix: "%",
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: kToolbarHeight),
-              Text(
-                widget.data['tagline']['title'],
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              Text(
-                widget.data['tagline']['desc'],
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-
-              const Spacer(),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await languageController.getLanguageData();
-                    MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                    shadowColor: Colors.transparent,
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Continue Learning",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward_rounded, size: 20),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+            _buildContinueButton(),
+          ],
         ),
       ),
     );
   }
 
-  // void _showDetails(BuildContext context) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     showDragHandle: true,
-  //     backgroundColor: Colors.white,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-  //     ),
-  //     builder: (_) {
-  //       return ListView.separated(
-  //         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-  //         itemCount: widget.logs.length,
-  //         separatorBuilder: (_, __) => const Divider(height: 1),
-  //         itemBuilder: (_, i) {
-  //           final l = widget.logs[i];
-  //           return ListTile(
-  //             title: Text(
-  //                 'Q${l.index + 1}: ${l.isCorrect ? "Correct" : "Incorrect"}',
-  //                 style: const TextStyle(fontWeight: FontWeight.w700)),
-  //             subtitle: Text('Selected: ${l.selected}\nCorrect: ${l.correct}'),
-  //             trailing: Text('${l.durationMs}ms',
-  //                 style: const TextStyle(fontWeight: FontWeight.w700)),
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-}
-
-class _DiamondsCard extends StatelessWidget {
-  final int count;
-
-  const _DiamondsCard({required this.count});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6EA8FF), Color(0xFF6C5CE7)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _buildIllustration() {
+    return FadeTransition(
+      opacity: _controller,
+      child: ScaleTransition(
+        scale: CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+        child: SvgPicture.asset(
+          AssetPath.hiImg,
+          height: 180,
         ),
-        borderRadius: BorderRadius.circular(18),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-      child: Column(
-        children: [
-          const Text(
-            'Diamonds',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              letterSpacing: .3,
-            ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return const Text(
+      "Lesson Completed!",
+      style: TextStyle(
+        fontFamily: 'serif',
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+        color: kDarkSlate,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+
+  Widget _buildTagline() {
+    final tagline = widget.data['tagline'] ?? {};
+    return Column(
+      children: [
+        Text(
+          tagline['title'] ?? "Great job!",
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: kDarkSlate,
           ),
-          const SizedBox(height: 6),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          tagline['desc'] ?? "Keep up the momentum.",
+          style: const TextStyle(
+            fontSize: 15,
+            color: kMuted,
+            fontWeight: FontWeight.w500,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGemReward() {
+    final gems = widget.data['earnedGems'] ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: kBorder, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              color: Colors.blue.shade50,
+              shape: BoxShape.circle,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.hexagon_rounded, color: Color(0xFF6C5CE7)),
-                const SizedBox(width: 8),
-                AnimatedCount(
-                  end: count,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w900),
+            child: const Icon(Icons.diamond_rounded, color: Colors.blueAccent, size: 32),
+          ),
+          const SizedBox(width: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "GEMS EARNED",
+                style: TextStyle(
+                  color: kMuted,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 1.5,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 2),
+              AnimatedCount(
+                end: gems,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w800,
+                  color: kDarkSlate,
+                  height: 1.1,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _buildStatsGrid() {
+    return Row(
+      children: [
+        Expanded(
+          child: _SmallStatCard(
+            label: "XP",
+            value: widget.data['earnedXP'] ?? 0,
+            icon: Icons.bolt_rounded,
+            iconColor: Colors.orange,
+            bgColor: Colors.orange.shade50,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _SmallStatCard(
+            label: "TIME",
+            value: widget.totalDurationMs,
+            icon: Icons.timer_rounded,
+            iconColor: Colors.teal,
+            bgColor: Colors.teal.shade50,
+            isTime: true,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _SmallStatCard(
+            label: "ACCURACY",
+            value: widget.data['percentage'] ?? 0,
+            icon: Icons.track_changes_rounded,
+            iconColor: Colors.redAccent,
+            bgColor: Colors.red.shade50,
+            suffix: "%",
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContinueButton() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: kBorder, width: 1.5)),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () async {
+            await languageController.getLanguageData();
+            MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kDarkSlate,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 0,
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "CONTINUE",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+              ),
+              SizedBox(width: 8),
+              Icon(Icons.arrow_forward_rounded, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _StatCard extends StatelessWidget {
+class _SmallStatCard extends StatelessWidget {
   final String label;
+  final num value;
   final IconData icon;
-  final Color color;
-  final Widget child;
+  final Color iconColor;
+  final Color bgColor;
+  final String? suffix;
+  final bool isTime;
 
-  const _StatCard({
+  const _SmallStatCard({
     required this.label,
+    required this.value,
     required this.icon,
-    required this.color,
-    required this.child,
+    required this.iconColor,
+    required this.bgColor,
+    this.suffix,
+    this.isTime = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
-      clipBehavior: Clip.hardEdge,
-      decoration: AppBoxDecoration.getBoxDecoration(
-        borderRadius: 20,
-        border: Border.all(color: color, width: 2),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: kBorder, width: 1.5),
       ),
       child: Column(
         children: [
           Container(
-            height: 50,
-            width: 120,
-            decoration: BoxDecoration(color: color),
-            child: Center(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+            child: Icon(icon, color: iconColor, size: 18),
           ),
-          const SizedBox(height: 8),
-          Center(
-              child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color),
-              const SizedBox(width: 6),
-              child,
-            ],
-          )),
+          const SizedBox(height: 12),
+          AnimatedCount(
+            end: value.toInt(),
+            isTime: isTime,
+            suffix: suffix,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: kDarkSlate),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(color: kMuted, fontWeight: FontWeight.w800, fontSize: 10, letterSpacing: 0.5),
+          ),
         ],
       ),
     );
@@ -340,34 +314,37 @@ class _StatCard extends StatelessWidget {
 
 class AnimatedCount extends StatelessWidget {
   final int end;
-  final Duration duration;
   final TextStyle? style;
-  final String? suffix; // e.g. '%', 's', etc.
-  final Curve curve;
-  final String Function(int value)? formatter;
+  final String? suffix;
+  final bool isTime;
 
   const AnimatedCount({
     super.key,
     required this.end,
-    this.duration = const Duration(milliseconds: 1200),
     this.style,
     this.suffix,
-    this.curve = Curves.easeOutCubic,
-    this.formatter,
+    this.isTime = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: end.toDouble()),
-      duration: duration,
-      curve: curve,
+      duration: const Duration(seconds: 2),
+      curve: Curves.easeOutExpo,
       builder: (context, value, child) {
-        final v = value.floor();
-        final text = formatter != null ? formatter!(v) : v.toString();
+        final v = value.toInt();
+        String text;
+        if (isTime) {
+          final m = (v ~/ 60000);
+          final s = ((v % 60000) ~/ 1000);
+          text = '${m.toString()}:${s.toString().padLeft(2, '0')}';
+        } else {
+          text = v.toString();
+        }
         return Text(
           suffix != null ? '$text$suffix' : text,
-          style: style ?? Theme.of(context).textTheme.headlineMedium,
+          style: style,
         );
       },
     );
