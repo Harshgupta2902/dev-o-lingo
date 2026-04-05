@@ -4,7 +4,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/exercises_controller.dart';
+import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/home_module/models/exercises_model.dart';
+import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
@@ -152,53 +154,67 @@ class _ExerciseViewState extends State<ExerciseView> {
   }
 
   Widget _buildBottomBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: kBorder, width: 1.5),
+    return userStatsController.obx((state) {
+      final hasHearts = (state?.hearts ?? 0) > 0;
+
+      return Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: kBorder, width: 1.5)),
         ),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kDarkSlate,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: hasHearts ? kDarkSlate : Colors.red.shade400,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+              disabledBackgroundColor: Colors.red.shade200,
             ),
-            elevation: 0,
-          ),
-          onPressed: () {
-            MyNavigator.pushNamed(
-              GoPaths.questionnaireView,
-              extra: {
-                "lessonId": widget.lessonId,
-                "questions": exerciseController.state?.data?.questions ?? [],
-              },
-            );
-          },
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "START EXERCISE",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
+            onPressed: hasHearts
+                ? () {
+                    MyNavigator.pushNamed(
+                      GoPaths.questionnaireView,
+                      extra: {
+                        "lessonId": widget.lessonId,
+                        "questions":
+                            exerciseController.state?.data?.questions ?? [],
+                      },
+                    );
+                  }
+                : null,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  hasHearts ? "START EXERCISE" : "OUT OF HEARTS",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    color: hasHearts ? Colors.black : Colors.white,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8),
-              Icon(Icons.play_arrow_rounded, size: 20),
-            ],
+                const SizedBox(width: 8),
+                Icon(
+                  hasHearts
+                      ? Icons.play_arrow_rounded
+                      : Icons.favorite_border_rounded,
+                  size: 20,
+                  color: hasHearts ? Colors.black : Colors.white,
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    },
+        onLoading: const SizedBox.shrink(),
+        onError: (err) => const SizedBox.shrink());
   }
 
   Widget _buildErrorState(String error) {
