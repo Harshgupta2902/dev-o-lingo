@@ -68,9 +68,7 @@ class _ExerciseViewState extends State<ExerciseView> {
         onLoading: const ExerciseViewSkeleton(),
         onError: (err) => _buildErrorState(err.toString()),
       ),
-      bottomNavigationBar: Obx(() => exerciseController.status.isSuccess 
-          ? _buildBottomBar() 
-          : const SizedBox.shrink()),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
