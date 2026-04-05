@@ -24,7 +24,6 @@ LanguageController get languageController => Get.find<LanguageController>();
 UserStatsController get userStatsController => Get.find<UserStatsController>();
 AppController get appController => Get.find<AppController>();
 
-
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage m) async {
   await Firebase.initializeApp();
@@ -66,7 +65,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage m) async {
     }
 
     // 🔵 Normal notifications fallback
-    await CoreNotificationService.createNotification(m, fromBackground: true);
+    // Only show manual notification if the system didn't already handle it
+    if (m.notification == null) {
+      await CoreNotificationService.createNotification(m, fromBackground: true);
+    }
   } catch (e) {
     log("BG handler error: $e");
   }
@@ -164,7 +166,10 @@ void main() async {
     }
 
     // fallback for normal messages
-    await CoreNotificationService.createNotification(m);
+    // Foreground check: only show manual if system won't (or if you want custom logic)
+    if (m.notification == null) {
+      await CoreNotificationService.createNotification(m);
+    }
   });
 
   Get.put(LanguageController());
