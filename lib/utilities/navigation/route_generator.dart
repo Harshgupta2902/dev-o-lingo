@@ -16,6 +16,7 @@ import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/home_module/view/result_view.dart';
 import 'package:lingolearn/home_module/view/unit_lessons_view.dart';
 import 'package:lingolearn/home_module/view/shop/shop_view.dart';
+import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 
