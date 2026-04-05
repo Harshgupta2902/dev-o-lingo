@@ -6,7 +6,6 @@ import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
 import 'package:lingolearn/home_module/view/follows_screen.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
-import 'package:lingolearn/utilities/common/core_app_bar.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/skeleton/profile_view_skeleton.dart';
@@ -39,96 +38,59 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: LiquidPullToRefresh(
-        onRefresh: _refresh,
-        color: kPrimary,
-        backgroundColor: Colors.white,
-        animSpeedFactor: 2.0,
-        child: profileController.obx(
-          (state) {
-            return SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: kSurface,
+      body: profileController.obx(
+        (state) {
+          return LiquidPullToRefresh(
+            onRefresh: _refresh,
+            color: kPrimary,
+            backgroundColor: Colors.white,
+            animSpeedFactor: 2.0,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(top: 60, bottom: 40),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CustomHeader(
-                    title: "Profile",
-                    icon: Icons.person,
-                  ),
+                  _buildTopNavigation(),
+                  const SizedBox(height: 24),
                   _buildProfileHeader(state),
-                  const SizedBox(height: 32),
-                  _buildAchievementsSection(state?.data?.achievements ?? []),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40),
                   _buildStatisticsSection(state),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 40),
+                  _buildAchievementsSection(state?.data?.achievements ?? []),
+                  const SizedBox(height: 40),
                   _buildSuggestionsSection(state?.data?.notFollowedUsers ?? []),
-                  const SizedBox(height: 20),
                 ],
               ),
-            );
-          },
-          onLoading: const AccountSkeleton(),
-        ),
+            ),
+          );
+        },
+        onLoading: const AccountSkeleton(),
       ),
     );
   }
 
-  Widget _buildSuggestionsSection(List<NotFollowedUsers> users) {
-    if (users.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          height: 100,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: kBorder),
-          ),
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.group_outlined, color: kMuted, size: 28),
-              SizedBox(height: 6),
-              Text(
-                'No suggestions right now',
-                style: TextStyle(color: kMuted, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
+  Widget _buildTopNavigation() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'People to follow',
+            "Profile",
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontFamily: 'serif',
+              fontSize: 32,
+              fontWeight: FontWeight.w600,
               color: kOnSurface,
-              letterSpacing: -0.5,
+              letterSpacing: -1,
             ),
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 150,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: users.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, i) {
-                final u = users[i];
-                return _UserSuggestCard(
-                  name: u.name ?? 'User',
-                  avatar: u.profile ?? '',
-                  id: u.id.toString(),
-                );
-              },
-            ),
+          IconButton(
+            onPressed: () => authController.googleSignOut(context),
+            icon: const Icon(Icons.logout_rounded, color: kMuted),
           ),
         ],
       ),
@@ -137,53 +99,43 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Widget _buildProfileHeader(UserProfileModel? state) {
     return Container(
-      width: MediaQuery.of(context).size.width,
-      padding: const EdgeInsets.all(24),
+      width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () => authController.googleSignOut(context),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: kPrimary.withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: NetworkImage(state?.data?.user?.profile ?? ""),
-                backgroundColor: kBorder,
-              ),
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: kBeigeBg, width: 4),
+            ),
+            child: CircleAvatar(
+              radius: 56,
+              backgroundImage: NetworkImage(state?.data?.user?.profile ?? ""),
+              backgroundColor: kBeigeBg,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             state?.data?.user?.name ?? "User",
             style: const TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.bold,
               color: kOnSurface,
-              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
             "Member since ${state?.data?.user?.createdAt ?? "2025"}",
             style: const TextStyle(
@@ -192,125 +144,348 @@ class _AccountScreenState extends State<AccountScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 16),
-          const Divider(color: kBorder),
-          const SizedBox(height: 16),
+          const SizedBox(height: 32),
+          Container(
+            height: 1,
+            color: kBeigeBg,
+            margin: const EdgeInsets.symmetric(horizontal: 32),
+          ),
+          const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    MyNavigator.pushNamed(
-                      GoPaths.followsView,
-                      extra: {'type': FollowsType.followers},
-                    );
-                  },
-                  child: _MiniStat(
-                    number: state?.data?.followers?.toString() ?? "",
-                    label: 'Followers',
-                  ),
-                ),
+              _buildSimpleStat(
+                context,
+                count: state?.data?.followers?.toString() ?? "0",
+                label: "Followers",
+                onTap: () => MyNavigator.pushNamed(GoPaths.followsView,
+                    extra: {'type': FollowsType.followers}),
               ),
-              _buildDivider(),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    MyNavigator.pushNamed(
-                      GoPaths.followsView,
-                      extra: {'type': FollowsType.following},
-                    );
-                  },
-                  child: _MiniStat(
-                    number: state?.data?.following?.toString() ?? "",
-                    label: 'Following',
-                  ),
-                ),
+              Container(width: 1, height: 40, color: kBeigeBg),
+              _buildSimpleStat(
+                context,
+                count: state?.data?.following?.toString() ?? "0",
+                label: "Following",
+                onTap: () => MyNavigator.pushNamed(GoPaths.followsView,
+                    extra: {'type': FollowsType.following}),
               ),
             ],
           ),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildDivider() {
-    return Container(
-      height: 40,
-      width: 1,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: kBorder,
-    );
-  }
-
-  Widget _buildAchievementsSection(List<Achievements> achievements) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Achievements',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: kOnSurface,
-                  letterSpacing: -0.5,
-                ),
+  Widget _buildSimpleStat(BuildContext context,
+      {required String count,
+      required String label,
+      required VoidCallback onTap}) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Text(
+              count,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: kOnSurface,
               ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  foregroundColor: kPrimary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                child: const Text(
-                  'View all',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: kMuted,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
-          _AchievementStrip(items: achievements),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStatisticsSection(UserProfileModel? state) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Text(
-                'Statistics',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: kOnSurface,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              SizedBox(width: 8),
-              Icon(
-                Icons.trending_up_rounded,
-                size: 24,
-                color: kAccent,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          StatsGrid(state: state),
+          _buildSectionTitle("Statistics", icon: Icons.trending_up_rounded),
+          const SizedBox(height: 20),
+          _buildStatsGrid(state),
         ],
       ),
     );
   }
+
+  Widget _buildStatsGrid(UserProfileModel? state) {
+    final stats = [
+      _StatItem(
+        label: "Day Streak",
+        value: "${state?.data?.stats?.streak ?? 0}",
+        icon: Icons.local_fire_department_rounded,
+        color: kCardPurple,
+        accentColor: const Color(0xFF8B5CF6),
+      ),
+      _StatItem(
+        label: "Lessons",
+        value: "${state?.data?.lessonsCompleted ?? 0}",
+        icon: Icons.school_rounded,
+        color: kCardOrange,
+        accentColor: const Color(0xFFF59E0B),
+      ),
+      _StatItem(
+        label: "Diamonds",
+        value: "${state?.data?.stats?.gems ?? 0}",
+        icon: Icons.diamond_rounded,
+        color: kCardGreen,
+        accentColor: const Color(0xFF10B981),
+      ),
+      _StatItem(
+        label: "Total XP",
+        value: "${state?.data?.stats?.xp ?? 0}",
+        icon: Icons.bolt_rounded,
+        color: kCardBlue,
+        accentColor: const Color(0xFF3B82F6),
+      ),
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: stats.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisExtent: 90,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemBuilder: (context, i) => _buildStatCard(stats[i]),
+    );
+  }
+
+  Widget _buildStatCard(_StatItem item) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: item.color,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(item.icon, color: item.accentColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.value,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: kOnSurface,
+                  ),
+                ),
+                Text(
+                  item.label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: kOnSurface,
+                    letterSpacing: 0.1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAchievementsSection(List<Achievements> achievements) {
+    if (achievements.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSectionTitle("Achievements",
+                  icon: Icons.emoji_events_rounded),
+              TextButton(
+                onPressed: () {},
+                child: const Text("View all",
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 110,
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            scrollDirection: Axis.horizontal,
+            itemCount: achievements.length,
+            itemBuilder: (context, index) {
+              final achievement = achievements[index];
+              return _buildAchievementCard(achievement);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAchievementCard(Achievements achievement) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: kBeigeBg, width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: kBeigeBg,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: (achievement.iconUrl?.isNotEmpty ?? false)
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child:
+                        Image.network(achievement.iconUrl!, fit: BoxFit.cover),
+                  )
+                : const Icon(Icons.emoji_events_rounded,
+                    color: kAmberAccent, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  achievement.title ?? "Achievement",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: kOnSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  achievement.description ?? "Keep going!",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: kMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionsSection(List<NotFollowedUsers> users) {
+    if (users.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _buildSectionTitle("People to follow",
+              icon: Icons.group_add_rounded),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 170, // Increased height for better padding
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            scrollDirection: Axis.horizontal,
+            itemCount: users.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, i) {
+              final u = users[i];
+              return _UserSuggestCard(
+                name: u.name ?? 'User',
+                avatar: u.profile ?? '',
+                id: u.id.toString(),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title, {IconData? icon}) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'serif',
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: kOnSurface,
+            letterSpacing: -0.5,
+          ),
+        ),
+        if (icon != null) ...[
+          const SizedBox(width: 8),
+          Icon(icon, color: kAccent, size: 24),
+        ],
+      ],
+    );
+  }
+}
+
+class _StatItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final Color accentColor;
+
+  _StatItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.accentColor,
+  });
 }
 
 class _UserSuggestCard extends StatefulWidget {
@@ -355,395 +530,75 @@ class _UserSuggestCardState extends State<_UserSuggestCard> {
       }
     }
     profileController.update();
-
     setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 150,
-      padding: const EdgeInsets.all(14),
+      width: 140,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircleAvatar(
-            radius: 26,
+            radius: 30,
             backgroundImage:
                 (widget.avatar.isNotEmpty) ? NetworkImage(widget.avatar) : null,
-            backgroundColor: kBorder,
+            backgroundColor: kBeigeBg,
             child: widget.avatar.isEmpty
                 ? const Icon(Icons.person_rounded, color: kMuted)
                 : null,
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: Text(
-              widget.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-                color: kOnSurface,
-              ),
+          const SizedBox(height: 12),
+          Text(
+            widget.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: kOnSurface,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           GestureDetector(
             onTap: isLoading ? null : _handleFollow,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: isFollowing ? Colors.grey.shade300 : Colors.blueAccent,
-                borderRadius: BorderRadius.circular(10),
+                color: isFollowing ? kBeigeBg : kPrimary,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: isLoading
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      isFollowing ? 'Following' : 'Follow',
-                      style: TextStyle(
-                        color: isFollowing ? Colors.black : Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AchievementStrip extends StatelessWidget {
-  final List<Achievements> items;
-
-  const _AchievementStrip({required this.items});
-
-  @override
-  Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return Container(
-        height: 100,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: kBorder),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.emoji_events_outlined, color: kMuted, size: 32),
-            SizedBox(height: 8),
-            Text(
-              'No achievements yet',
-              style: TextStyle(color: kMuted, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return SizedBox(
-      height: 90,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, i) {
-          final achievement = items[i];
-          return Container(
-            width: 260,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                // icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        kPrimary.withValues(alpha: 0.1),
-                        kSecondary.withValues(alpha: 0.1)
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: (achievement.iconUrl != null &&
-                          achievement.iconUrl!.isNotEmpty)
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(achievement.iconUrl!,
-                              fit: BoxFit.cover),
-                        )
-                      : const Icon(Icons.emoji_events_rounded,
-                          color: kPrimary, size: 24),
-                ),
-                const SizedBox(width: 12),
-
-                // text
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // title + time on same line
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              achievement.title ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: kOnSurface,
-                              ),
-                            ),
-                          ),
-                          if ((achievement.achievedAt ?? '').isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.schedule_rounded,
-                                      size: 12, color: kMuted),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    achievement.achievedAt!, // "3m ago"
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: kMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-
-                      // description
-                      Text(
-                        achievement.description ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+              child: Center(
+                child: isLoading
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: kOnSurface),
+                      )
+                    : Text(
+                        isFollowing ? 'Following' : 'Follow',
+                        style: TextStyle(
+                          color: isFollowing ? kMuted : kOnSurface,
                           fontSize: 12,
-                          color: kMuted,
-                          height: 1.3,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final String number;
-  final String label;
-
-  const _MiniStat({required this.number, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          number,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: kOnSurface,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: kMuted,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class StatsGrid extends StatelessWidget {
-  const StatsGrid({super.key, this.state});
-
-  final UserProfileModel? state;
-
-  @override
-  Widget build(BuildContext context) {
-    final cards = <_StatCardData>[
-      _StatCardData(
-        icon: Icons.local_fire_department_rounded,
-        iconColor: const Color(0xFFEF4444),
-        backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.1),
-        value: "${state?.data?.stats?.streak ?? 0}",
-        label: 'Day Streak',
-      ),
-      _StatCardData(
-        icon: Icons.school_rounded,
-        iconColor: const Color(0xFF8B5CF6),
-        backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-        value: "${state?.data?.lessonsCompleted ?? 0}",
-        label: 'Lessons',
-      ),
-      _StatCardData(
-        icon: Icons.diamond_rounded,
-        iconColor: const Color(0xFF06B6D4),
-        backgroundColor: const Color(0xFF06B6D4).withValues(alpha: 0.1),
-        value: "${state?.data?.stats?.gems ?? 0}",
-        label: 'Diamonds',
-      ),
-      _StatCardData(
-        icon: Icons.bolt_rounded,
-        iconColor: const Color(0xFFF59E0B),
-        backgroundColor: const Color(0xFFF59E0B).withValues(alpha: 0.1),
-        value: "${state?.data?.stats?.xp ?? 0}",
-        label: 'Total XP',
-      ),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: cards.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisExtent: 80,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemBuilder: (context, i) => _StatCard(data: cards[i]),
-    );
-  }
-}
-
-class _StatCardData {
-  final IconData icon;
-  final Color iconColor;
-  final Color backgroundColor;
-  final String value;
-  final String label;
-
-  _StatCardData({
-    required this.icon,
-    required this.iconColor,
-    required this.backgroundColor,
-    required this.value,
-    required this.label,
-  });
-}
-
-class _StatCard extends StatelessWidget {
-  final _StatCardData data;
-
-  const _StatCard({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: data.backgroundColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(data.icon, color: data.iconColor, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.value,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: kOnSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  data.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: kMuted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],

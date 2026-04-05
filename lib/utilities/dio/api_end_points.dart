@@ -1,9 +1,10 @@
 class APIEndPoints {
   static const live = 'https://dev-o-lingo-api-6laf.vercel.app/api/';
-  // static const local = 'http://localhost:3000/api/';
-  static const local = 'http://192.168.1.2:3000/api/';
+  static const local = 'http://10.74.192.176:5000/api/';
+  // static const local = 'http://192.168.1.1:5000/api/';
+  // 10.74.192.147
 
-  static const base = live;
+  static const base = local;
 
   static const socialLogin = "auth/social-login";
   static const fetchUserData = "auth/fetchUserData";

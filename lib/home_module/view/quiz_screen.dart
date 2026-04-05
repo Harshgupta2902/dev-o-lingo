@@ -6,7 +6,6 @@ import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/home_module/models/exercises_model.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
-import 'package:lingolearn/utilities/packages/ad_helper.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 final exerciseController = Get.put(ExercisesController());
