@@ -67,5 +67,19 @@ class UserStatsController extends GetxController with StateMixin<Stats> {
       debugPrint("---------- $apiEndPoint getUserStats End ----------");
     }
   }
+
+  void updateHearts(num count) {
+    if (state != null) {
+      state!.hearts = count;
+      change(state, status: RxStatus.success());
+    }
+  }
+
+  void updateXP(num xp) {
+    if (state != null) {
+      state!.xp = xp.toInt();
+      change(state, status: RxStatus.success());
+    }
+  }
 }
 
