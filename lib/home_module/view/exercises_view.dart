@@ -10,6 +10,9 @@ import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:lingolearn/home_module/widgets/course_overview_card.dart';
+import 'package:lingolearn/utilities/skeleton/exercise_view_skeleton.dart';
+
 final exerciseController = Get.put(ExercisesController());
 
 class ExerciseView extends StatefulWidget {
@@ -29,107 +32,6 @@ class _ExerciseViewState extends State<ExerciseView> {
     exerciseController.getExercisebyId(widget.slug);
   }
 
-  Future<void> _openLink(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  Widget _buildLinkCard(Links? link) {
-    IconData icon;
-    Color iconColor;
-    Color backgroundColor;
-
-    if (link?.type == 'video') {
-      icon = Icons.play_circle_rounded;
-      iconColor = const Color(0xFFEF4444);
-      backgroundColor = const Color(0xFFEF4444).withOpacity(0.1);
-    } else {
-      icon = Icons.article_rounded;
-      iconColor = const Color(0xFF3B82F6);
-      backgroundColor = const Color(0xFF3B82F6).withOpacity(0.1);
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 0,
-        child: InkWell(
-          onTap: () => _openLink(link?.url ?? ""),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              border: Border.all(color: kBorder),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        link?.title ?? '',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: kOnSurface,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        link?.url ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: kMuted,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: kSurface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_outward_rounded,
-                    size: 16,
-                    color: kMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,240 +39,195 @@ class _ExerciseViewState extends State<ExerciseView> {
       body: exerciseController.obx(
         (state) {
           final data = state?.data?.exercise;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                // Header Section
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: kPrimary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              'Exercise',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: kPrimary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        data?.title ?? "",
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: kOnSurface,
-                          height: 1.2,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        data?.description ?? "",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: kMuted,
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
+          return Column(
+            children: [
+              _buildHeader(data?.title ?? "Exercise"),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 24),
+                    child: CourseOverviewCard(
+                      description: data?.description ?? "",
+                      themeColor: kDarkSlate,
+                      resources: (data?.links ?? [])
+                          .map((link) => OverviewResource(
+                                type: link.type ?? "info",
+                                title: link.title ?? "Learn more",
+                                url: link.url ?? "",
+                              ))
+                          .toList(),
+                    ),
                   ),
                 ),
-
-                const SizedBox(height: 32),
-
-                // Resources Section
-                Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: kAccent,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      "Learning Resources",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: kOnSurface,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Resource Cards
-                if (data?.links?.isEmpty ?? true)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: kBorder),
-                    ),
-                    child: const Column(
-                      children: [
-                        Icon(
-                          Icons.library_books_outlined,
-                          size: 48,
-                          color: kMuted,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No resources available',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: kMuted,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Resources will appear here when added',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: kMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else
-                  ...List.generate(
-                    data?.links?.length ?? 0,
-                    (index) => _buildLinkCard(data?.links?[index]),
-                  ),
-
-                const SizedBox(height: 100), // Space for bottom button
-              ],
-            ),
+              ),
+            ],
           );
         },
-        onLoading: const Center(
-          child: CircularProgressIndicator(
-            color: kPrimary,
-            strokeWidth: 3,
+        onLoading: const ExerciseViewSkeleton(),
+        onError: (err) => _buildErrorState(err.toString()),
+      ),
+      bottomNavigationBar: Obx(() => exerciseController.status.isSuccess 
+          ? _buildBottomBar() 
+          : const SizedBox.shrink()),
+    );
+  }
+
+  Widget _buildHeader(String title) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: kBorder, width: 1.5),
+        ),
+      ),
+      padding: const EdgeInsets.only(top: 45, left: 16, right: 24, bottom: 16),
+      child: Row(
+        children: [
+          _buildCircleBackButton(),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "LESSON OVERVIEW",
+                  style: TextStyle(
+                    color: kMuted,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'serif',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    color: kDarkSlate,
+                    height: 1.1,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCircleBackButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: kBorder, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => MyNavigator.pop(),
+          borderRadius: BorderRadius.circular(100),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: kDarkSlate,
+              size: 20,
+            ),
           ),
         ),
-        onError: (err) => Center(
-          child: Column(
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(color: kBorder, width: 1.5),
+        ),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kDarkSlate,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 0,
+          ),
+          onPressed: () {
+            MyNavigator.pushNamed(
+              GoPaths.questionnaireView,
+              extra: {
+                "lessonId": widget.lessonId,
+                "questions": exerciseController.state?.data?.questions ?? [],
+              },
+            );
+          },
+          child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: kMuted,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                "Something went wrong",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: kMuted,
-                ),
-              ),
-              const SizedBox(height: 8),
               Text(
-                "Error: $err",
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: kMuted,
+                "START EXERCISE",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
                 ),
-                textAlign: TextAlign.center,
               ),
+              SizedBox(width: 8),
+              Icon(Icons.play_arrow_rounded, size: 20),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            top: BorderSide(color: kBorder),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline_rounded, size: 64, color: kMuted),
+          const SizedBox(height: 16),
+          const Text(
+            "Something went wrong",
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: kDarkSlate),
           ),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kPrimary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-                shadowColor: Colors.transparent,
-              ),
-              onPressed: () {
-                MyNavigator.pushNamed(
-                  GoPaths.questionnaireView,
-                  extra: {
-                    "lessonId": widget.lessonId,
-                    "questions":
-                        exerciseController.state?.data?.questions ?? [],
-                  },
-                );
-              },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Start Questionnaire",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(error,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: kMuted)),
           ),
-        ),
+          const SizedBox(height: 24),
+          TextButton(
+            onPressed: () => exerciseController.getExercisebyId(widget.slug),
+            child: const Text("RETRY"),
+          ),
+        ],
       ),
     );
   }
