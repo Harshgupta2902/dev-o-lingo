@@ -47,7 +47,7 @@ class LanguageController extends GetxController
         postData: {"email": getEmailId()},
       );
 
-      log("LanguageController => getLanguageData > Success  $response");
+      debugPrint("LanguageController => getLanguageData > Success  $response");
 
       final responseData =
           response.data is String ? jsonDecode(response.data) : response.data;

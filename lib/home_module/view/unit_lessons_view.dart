@@ -508,7 +508,7 @@ class TimelineLessonItem extends StatelessWidget {
     required this.unitNumber,
   });
 
-  void _handleNavigation(BuildContext context) {
+  void _handleNavigation(BuildContext context, String lessonId) {
     if (kDebugMode) print("🚀 [Navigation] Tapped lesson: ${lesson.name}");
 
     if (!appController.performActionWithConnection(context,
@@ -534,16 +534,12 @@ class TimelineLessonItem extends StatelessWidget {
     }
 
     if (lesson.externalId == null) {
-      if (kDebugMode)
-        print("❌ [Navigation] externalId is NULL. Cannot navigate.");
       return;
     }
 
-    if (kDebugMode)
-      print("✅ [Navigation] Navigating to: ${GoPaths.exercisesView}");
     MyNavigator.pushNamed(
       GoPaths.exercisesView,
-      extra: {'slug': lesson.externalId, "lessonId": unitNumber.toString()},
+      extra: {'slug': lesson.externalId, "lessonId": lessonId},
     );
   }
 
@@ -630,7 +626,7 @@ class TimelineLessonItem extends StatelessWidget {
             // Content Card
             Expanded(
               child: InkWell(
-                onTap: () => _handleNavigation(context),
+                onTap: () => _handleNavigation(context, lesson.id.toString()),
                 borderRadius: BorderRadius.circular(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

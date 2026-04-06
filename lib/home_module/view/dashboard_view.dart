@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:lingolearn/home_module/controller/profile_controller.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
 import 'package:lingolearn/main.dart' hide userStatsController;
 import 'package:lingolearn/utilities/constants/assets_path.dart';
@@ -20,6 +21,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
     with TickerProviderStateMixin {
   final Map<int, GlobalKey> _unitKeys = {};
   bool _hasScrolledToActiveUnit = false;
+  final profileController = Get.put(ProfileController());
   int _selectedTab = 0; // 0 for Ongoing, 1 for Completed
 
   @override
@@ -214,10 +216,18 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   Widget _buildHeaderTitle() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildUserProfileHeader(),
+              _buildNotificationBell(),
+            ],
+          ),
+          const SizedBox(height: 32),
           Text(
             "Improve ${languageController.state?.data?.languageTitle ?? ""}",
             style: const TextStyle(
@@ -240,6 +250,77 @@ class _LessonPathScreenState extends State<LessonPathScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUserProfileHeader() {
+    return profileController.obx(
+      (state) {
+        final user = state?.data?.user;
+        return Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFFFD6E5), // Soft Pink
+              ),
+              child: CircleAvatar(
+                radius: 22,
+                backgroundImage:
+                    (user?.profile != null && user!.profile!.isNotEmpty)
+                        ? NetworkImage(user.profile!)
+                        : null,
+                backgroundColor: Colors.transparent,
+                child: (user?.profile == null || user!.profile!.isEmpty)
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Your level",
+                  style: TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  user?.name ?? "Beginner A1",
+                  style: const TextStyle(
+                    color: Color(0xFF1F2937),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+      onLoading: const SizedBox.shrink(),
+      onError: (_) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildNotificationBell() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: kCardYellow,
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        onPressed: () {},
+        icon: const Icon(
+          Icons.notifications_none_rounded,
+          color: Color(0xFF1F2937),
+          size: 24,
+        ),
       ),
     );
   }

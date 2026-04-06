@@ -196,7 +196,7 @@ class _ExerciseViewState extends State<ExerciseView> {
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.2,
-                    color: hasHearts ? Colors.black : Colors.white,
+                    color: hasHearts ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -205,7 +205,7 @@ class _ExerciseViewState extends State<ExerciseView> {
                       ? Icons.play_arrow_rounded
                       : Icons.favorite_border_rounded,
                   size: 20,
-                  color: hasHearts ? Colors.black : Colors.white,
+                  color: hasHearts ? Colors.white : Colors.black,
                 ),
               ],
             ),
