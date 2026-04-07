@@ -167,6 +167,12 @@ class Stats {
     this.lastStreakDate,
     this.createdAt,
     this.updatedAt,
+    this.unreadNotifications,
+    this.levelRank,
+    this.levelTitle,
+    this.levelEmoji,
+    this.nextLevelXp,
+    this.xpToNext,
   });
 
   Stats.fromJson(dynamic json) {
@@ -180,6 +186,14 @@ class Stats {
     lastStreakDate = json['last_streak_date'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    unreadNotifications = json['unreadNotifications'];
+    if (json['level'] != null) {
+      levelRank = json['level']['rank'];
+      levelTitle = json['level']['title'];
+      levelEmoji = json['level']['emoji'];
+      nextLevelXp = json['level']['next_level_xp'];
+      xpToNext = json['level']['xp_to_next'];
+    }
   }
   num? id;
   num? userId;
@@ -191,6 +205,12 @@ class Stats {
   String? lastStreakDate;
   String? createdAt;
   String? updatedAt;
+  num? unreadNotifications;
+  int? levelRank;
+  String? levelTitle;
+  String? levelEmoji;
+  int? nextLevelXp;
+  int? xpToNext;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -204,6 +224,14 @@ class Stats {
     map['last_streak_date'] = lastStreakDate;
     map['created_at'] = createdAt;
     map['updated_at'] = updatedAt;
+    map['unreadNotifications'] = unreadNotifications;
+    map['level'] = {
+      'rank': levelRank,
+      'title': levelTitle,
+      'emoji': levelEmoji,
+      'next_level_xp': nextLevelXp,
+      'xp_to_next': xpToNext,
+    };
     return map;
   }
 }
