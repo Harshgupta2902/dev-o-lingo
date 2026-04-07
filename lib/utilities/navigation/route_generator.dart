@@ -15,6 +15,7 @@ import 'package:lingolearn/home_module/view/exercises_view.dart';
 import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/home_module/view/result_view.dart';
 import 'package:lingolearn/home_module/view/unit_lessons_view.dart';
+import 'package:lingolearn/home_module/view/notification_view.dart';
 import 'package:lingolearn/home_module/view/shop/shop_view.dart';
 import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
@@ -199,6 +200,14 @@ final GoRouter goRouterConfig = GoRouter(
           units: units,
           lastCompletedId: lastCompletedId,
         );
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.notificationView,
+      name: GoPaths.notificationView,
+      builder: (context, state) {
+        return const NotificationView();
       },
     ),
   ],

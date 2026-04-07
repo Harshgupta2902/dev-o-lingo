@@ -35,4 +35,7 @@ class APIEndPoints {
   static const getShopItems = "shop/items";
   static const verifyShopPurchase = "shop/verify";
   static const createShopOrder = "shop/create";
+
+  static const getNotifications = "notifications";
+  static const markAllNotificationsRead = "notifications/read-all";
 }
