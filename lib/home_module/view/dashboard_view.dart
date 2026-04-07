@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/profile_controller.dart';
+import 'package:lingolearn/home_module/controller/notification_controller.dart';
+import 'package:lingolearn/home_module/view/notification_view.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
-import 'package:lingolearn/main.dart' hide userStatsController;
+import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -22,6 +24,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   final Map<int, GlobalKey> _unitKeys = {};
   bool _hasScrolledToActiveUnit = false;
   final profileController = Get.put(ProfileController());
+  final notificationController = Get.put(NotificationController());
   int _selectedTab = 0; // 0 for Ongoing, 1 for Completed
 
   @override
@@ -282,12 +285,34 @@ class _LessonPathScreenState extends State<LessonPathScreen>
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Your level",
-                  style: TextStyle(
-                    color: Color(0xFF9CA3AF),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                userStatsController.obx(
+                  (statsState) {
+                    final emoji = statsState?.levelEmoji ?? '';
+                    final title = statsState?.levelTitle ?? 'Beginner';
+                    return Text(
+                      '$title $emoji'.trim(),
+                      style: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    );
+                  },
+                  onLoading: Text(
+                    user?.name ?? 'Beginner',
+                    style: const TextStyle(
+                      color: Color(0xFF1F2937),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onError: (_) => const Text(
+                    'Beginner',
+                    style: TextStyle(
+                      color: Color(0xFF1F2937),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Text(
@@ -309,13 +334,63 @@ class _LessonPathScreenState extends State<LessonPathScreen>
   }
 
   Widget _buildNotificationBell() {
+    return userStatsController.obx((statsState) {
+      final unreadCount = statsState?.unreadNotifications ?? 0;
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              color: kCardYellow,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              onPressed: () => MyNavigator.pushNamed(GoPaths.notificationView),
+              icon: const Icon(
+                Icons.notifications_none_rounded,
+                color: Color(0xFF1F2937),
+                size: 24,
+              ),
+            ),
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFEF4444), // errorMain / red
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                child: Text(
+                  unreadCount > 9 ? '9+' : unreadCount.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
+      );
+    }, onLoading: _buildBellLoading(), onError: (_) => _buildBellLoading());
+  }
+
+  Widget _buildBellLoading() {
     return Container(
       decoration: const BoxDecoration(
         color: kCardYellow,
         shape: BoxShape.circle,
       ),
       child: IconButton(
-        onPressed: () {},
+        onPressed: () => MyNavigator.pushNamed(GoPaths.notificationView),
         icon: const Icon(
           Icons.notifications_none_rounded,
           color: Color(0xFF1F2937),
