@@ -219,7 +219,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   Widget _buildHeaderTitle() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -230,7 +230,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
               _buildNotificationBell(),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
           Text(
             "Improve ${languageController.state?.data?.languageTitle ?? ""}",
             style: const TextStyle(
@@ -245,7 +245,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
             "day by day",
             style: TextStyle(
               fontFamily: 'serif',
-              fontSize: 36,
+              fontSize: 32,
               fontWeight: FontWeight.w400,
               color: Color(0xFF9CA3AF),
               fontStyle: FontStyle.italic,
@@ -488,62 +488,223 @@ class _ModernUnitCard extends StatelessWidget {
         unit.lessons?.where((l) => l.isCompleted == true).length ?? 0;
     int totalCount = unit.lessons?.length ?? 0;
     if (totalCount == 0) totalCount = unit.lessonCount?.toInt() ?? 1;
+    bool isCurrentUnit = unit.lessons?.any((l) => l.isCurrent == true) ?? false;
     double progressValue = totalCount > 0 ? (completedCount / totalCount) : 0;
-    int starCount = (progressValue * 5).floor();
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 24),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-            bottomRight: Radius.circular(32),
-            bottomLeft: Radius.circular(8),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: backgroundColor.withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
+        margin: const EdgeInsets.only(bottom: 20),
+        child: Stack(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    unit.name ?? "Unit $unitIndex",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
+            // Main Card
+            Container(
+              constraints: const BoxConstraints(minHeight: 140),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    backgroundColor,
+                    Color.alphaBlend(
+                      Colors.white.withValues(alpha: 0.5),
+                      backgroundColor,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: List.generate(5, (index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: Icon(
-                          index < starCount
-                              ? Icons.star_rounded
-                              : Icons.star_outline_rounded,
-                          size: 20,
-                          color: index < starCount
-                              ? const Color(0xFFF59E0B)
-                              : const Color(0xFF1F2937).withValues(alpha: 0.1),
-                        ),
-                      );
-                    }),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: backgroundColor.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
                   ),
                 ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: Stack(
+                  children: [
+                    // Decorative Background Shapes
+                    Positioned(
+                      right: -30,
+                      top: -30,
+                      child: Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -20,
+                      bottom: -40,
+                      child: Container(
+                        width: 110,
+                        height: 110,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+
+                    // Content
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Row(
+                        children: [
+                          // Progress Circular Indicator
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 72,
+                                height: 72,
+                                child: CircularProgressIndicator(
+                                  value: 1.0,
+                                  strokeWidth: 8,
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 72,
+                                height: 72,
+                                child: CircularProgressIndicator(
+                                  value: progressValue,
+                                  strokeWidth: 8,
+                                  strokeCap: StrokeCap.round,
+                                  color: const Color(0xFF1B2431),
+                                ),
+                              ),
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  unitIndex.toString().padLeft(2, '0'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 20,
+                                    color: Color(0xFF1B2431),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 20),
+
+                          // Unit Details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (isCurrentUnit)
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1B2431),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Text(
+                                      "CURRENT",
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                Text(
+                                  "UNIT $unitIndex".toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    letterSpacing: 1.2,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF1B2431)
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  unit.name ?? "Basics",
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF1B2431),
+                                    height: 1.1,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.menu_book_rounded,
+                                      size: 14,
+                                      color: const Color(0xFF1B2431)
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "$completedCount/$totalCount Lessons",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF1B2431)
+                                            .withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Arrow Icon
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              size: 20,
+                              color: Color(0xFF1B2431),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
