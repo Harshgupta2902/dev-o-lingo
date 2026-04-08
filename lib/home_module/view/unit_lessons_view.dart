@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
-import 'package:lingolearn/home_module/view/dashboard_view.dart'; // To get unitColors and unitColorAssetMap
-import 'package:lingolearn/utilities/constants/assets_path.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
-import 'package:lingolearn/home_module/view/path_painter.dart';
-import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 import 'package:lingolearn/config.dart';
 import 'package:lingolearn/main.dart' hide userStatsController;
 import 'package:lingolearn/utilities/theme/app_colors.dart';

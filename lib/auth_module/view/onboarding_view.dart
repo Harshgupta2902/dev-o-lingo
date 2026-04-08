@@ -13,7 +13,6 @@ import 'package:lingolearn/utilities/common/secondary_header.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
-import 'package:lingolearn/utilities/theme/core_box_shadow.dart';
 
 final onBoardingController = Get.put(OnboardingController());
 final authController = Get.put(AuthController());
