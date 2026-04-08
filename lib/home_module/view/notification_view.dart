@@ -6,6 +6,7 @@ import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:intl/intl.dart';
+import 'package:lingolearn/utilities/skeleton/notification_skeleton.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({super.key});
@@ -116,8 +117,7 @@ class _NotificationViewState extends State<NotificationView> {
             ),
           );
         },
-        onLoading:
-            const Center(child: CircularProgressIndicator(color: kAmberAccent)),
+        onLoading: const NotificationSkeleton(),
         onError: (err) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

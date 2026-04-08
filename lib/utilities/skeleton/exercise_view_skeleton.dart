@@ -18,18 +18,18 @@ class ExerciseViewSkeleton extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _shimmerLine(width: double.infinity),
+                  _skeletonBox(height: 15, width: double.infinity),
                   const SizedBox(height: 8),
-                  _shimmerLine(width: 250),
+                  _skeletonBox(height: 15, width: 250),
                   const SizedBox(height: 8),
-                  _shimmerLine(width: 150),
+                  _skeletonBox(height: 15, width: 150),
                   const SizedBox(height: 32),
                   // Divider skeleton
                   Row(
                     children: [
                       const Expanded(child: Divider(color: kBorder, thickness: 1.5)),
                       const SizedBox(width: 16),
-                      _shimmerBox(width: 150, height: 35, borderRadius: 100),
+                      _skeletonBox(height: 35, width: 150, borderRadius: 100),
                       const SizedBox(width: 16),
                       const Expanded(child: Divider(color: kBorder, thickness: 1.5)),
                     ],
@@ -55,16 +55,16 @@ class ExerciseViewSkeleton extends StatelessWidget {
       padding: const EdgeInsets.only(top: 45, left: 16, right: 24, bottom: 16),
       child: Row(
         children: [
-          _shimmerCircle(size: 40),
+          _skeletonBox(height: 40, width: 40, borderRadius: 20),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _shimmerLine(width: 100, height: 10),
+                _skeletonBox(height: 10, width: 100),
                 const SizedBox(height: 6),
-                _shimmerLine(width: 180, height: 20),
+                _skeletonBox(height: 20, width: 180),
               ],
             ),
           ),
@@ -78,56 +78,30 @@ class ExerciseViewSkeleton extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          _shimmerBox(width: 70, height: 24, borderRadius: 6),
+          _skeletonBox(height: 24, width: 70, borderRadius: 6),
           const SizedBox(width: 12),
-          Expanded(child: _shimmerLine(height: 15)),
+          Expanded(child: _skeletonBox(height: 15, width: double.infinity)),
           const SizedBox(width: 12),
-          _shimmerBox(width: 16, height: 16, borderRadius: 4),
+          _skeletonBox(height: 16, width: 16, borderRadius: 4),
         ],
       ),
     );
   }
 
-  Widget _shimmerLine({double width = 100, double height = 15}) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(4),
-        ),
-      ),
-    );
-  }
-
-  Widget _shimmerBox({required double width, required double height, double borderRadius = 8}) {
+  Widget _skeletonBox({
+    double height = 16,
+    double? width,
+    double borderRadius = 8,
+  }) {
     return Shimmer.fromColors(
       baseColor: Colors.grey.shade200,
       highlightColor: Colors.grey.shade50,
       child: Container(
-        width: width,
         height: height,
+        width: width,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(borderRadius),
-        ),
-      ),
-    );
-  }
-
-  Widget _shimmerCircle({double size = 40}) {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade50,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
         ),
       ),
     );
