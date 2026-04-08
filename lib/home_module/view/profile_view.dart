@@ -57,9 +57,9 @@ class _AccountScreenState extends State<AccountScreen> {
                   _buildTopNavigation(),
                   const SizedBox(height: 24),
                   _buildProfileHeader(state),
-                  const SizedBox(height: 40),
-                  _buildStatisticsSection(state),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
+                  _buildStatsGrid(state),
+                  const SizedBox(height: 12),
                   _buildAchievementsSection(state?.data?.achievements ?? []),
                   const SizedBox(height: 40),
                   _buildSuggestionsSection(state?.data?.notFollowedUsers ?? []),
@@ -102,9 +102,10 @@ class _AccountScreenState extends State<AccountScreen> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -113,65 +114,98 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
+          // Photo on the left
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: kBeigeBg, width: 4),
+              border: Border.all(color: kBeigeBg, width: 2),
             ),
             child: CircleAvatar(
-              radius: 56,
+              radius: 40,
               backgroundImage: NetworkImage(state?.data?.user?.profile ?? ""),
               backgroundColor: kBeigeBg,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(width: 20),
+          // Name and Stats on the right
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  state?.data?.user?.name ?? "User",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: kDarkSlate,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Text(
+                  "Member since ${state?.data?.user?.createdAt ?? "2025"}",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: kMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Compact horizontal stats
+                Row(
+                  children: [
+                    _buildInstagramStat(
+                      count: state?.data?.followers?.toString() ?? "0",
+                      label: "Followers",
+                      onTap: () => MyNavigator.pushNamed(GoPaths.followsView,
+                          extra: {'type': FollowsType.followers}),
+                    ),
+                    const SizedBox(width: 24),
+                    _buildInstagramStat(
+                      count: state?.data?.following?.toString() ?? "0",
+                      label: "Following",
+                      onTap: () => MyNavigator.pushNamed(GoPaths.followsView,
+                          extra: {'type': FollowsType.following}),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstagramStat({
+    required String count,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            state?.data?.user?.name ?? "User",
+            count,
             style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: kOnSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: kDarkSlate,
             ),
           ),
           Text(
-            "Member since ${state?.data?.user?.createdAt ?? "2025"}",
+            label,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 11,
               color: kMuted,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 32),
-          Container(
-            height: 1,
-            color: kBeigeBg,
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              _buildSimpleStat(
-                context,
-                count: state?.data?.followers?.toString() ?? "0",
-                label: "Followers",
-                onTap: () => MyNavigator.pushNamed(GoPaths.followsView,
-                    extra: {'type': FollowsType.followers}),
-              ),
-              Container(width: 1, height: 40, color: kBeigeBg),
-              _buildSimpleStat(
-                context,
-                count: state?.data?.following?.toString() ?? "0",
-                label: "Following",
-                onTap: () => MyNavigator.pushNamed(GoPaths.followsView,
-                    extra: {'type': FollowsType.following}),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
         ],
       ),
     );
@@ -204,20 +238,6 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatisticsSection(UserProfileModel? state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionTitle("Statistics", icon: Icons.trending_up_rounded),
-          const SizedBox(height: 20),
-          _buildStatsGrid(state),
-        ],
       ),
     );
   }
@@ -256,11 +276,12 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return GridView.builder(
       shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       physics: const NeverScrollableScrollPhysics(),
       itemCount: stats.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisExtent: 90,
+        mainAxisExtent: 80,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -339,7 +360,6 @@ class _AccountScreenState extends State<AccountScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
         SizedBox(
           height: 110,
           child: ListView.builder(
