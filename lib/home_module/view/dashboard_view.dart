@@ -201,7 +201,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
                     itemCount: filteredUnits.length,
                     itemBuilder: (context, index) {
                       final unit = filteredUnits[index];

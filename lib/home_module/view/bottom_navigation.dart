@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lingolearn/utilities/common/key_value_pair_model.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -15,43 +16,79 @@ class CustomBottomNavigationBar extends StatefulWidget {
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   int _index = 0;
 
-  List<KeyValuePairModel> bars = [
-    KeyValuePairModel(key: Icons.home, value: "Home"),
-    KeyValuePairModel(key: Icons.book, value: "Stories"),
-    KeyValuePairModel(key: Icons.leaderboard, value: "Leaderboard"),
-    KeyValuePairModel(key: Icons.book_outlined, value: "Practise"),
-    KeyValuePairModel(key: Icons.person, value: "Profile"),
+  final List<KeyValuePairModel> bars = [
+    KeyValuePairModel(key: Icons.home_rounded, value: "Home"),
+    KeyValuePairModel(key: Icons.auto_awesome_rounded, value: "Stories"),
+    KeyValuePairModel(key: Icons.leaderboard_rounded, value: "Rank"),
+    KeyValuePairModel(key: Icons.auto_stories_rounded, value: "Learn"),
+    KeyValuePairModel(key: Icons.person_rounded, value: "Profile"),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      onTap: (value) {
-        setState(() {
-          _index = value;
-        });
-        _onItemTapped(value);
-      },
-      backgroundColor: Colors.white,
-      currentIndex: _index,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: kPrimary,
-      unselectedItemColor: Colors.black,
-      selectedFontSize: 14,
-      unselectedFontSize: 14,
-      items: List.generate(
-        bars.length,
-        (index) {
-          return BottomNavigationBarItem(
-            icon: Icon(
-              bars[index].key,
-              color: index == _index ? const Color(0xFF6C63FF) : Colors.grey,
-              size: 28,
-            ),
-            label: '',
-            tooltip: bars[index].value,
-          );
-        },
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: kDarkSlate.withValues(alpha: 0.08),
+            width: 1.5,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Container(
+          height: 64,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(bars.length, (index) {
+              final isSelected = _index == index;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _index = index);
+                    _onItemTapped(index);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedScale(
+                        duration: const Duration(milliseconds: 200),
+                        scale: isSelected ? 1.15 : 1.0,
+                        child: Icon(
+                          bars[index].key,
+                          color: isSelected
+                              ? kDarkSlate
+                              : kDarkSlate.withValues(alpha: 0.35),
+                          size: 26,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: isSelected ? 4 : 0,
+                        height: 4,
+                        decoration: const BoxDecoration(
+                          color: kDarkSlate,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
       ),
     );
   }

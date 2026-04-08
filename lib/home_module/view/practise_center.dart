@@ -165,7 +165,7 @@ class PracticeCenterScreen extends StatelessWidget {
 
                 ...reviewData.map((item) => _buildQuestionCard(item)),
 
-                const SizedBox(height: kBottomNavigationBarHeight),
+                const SizedBox(height: 16),
               ],
             ),
           ),
