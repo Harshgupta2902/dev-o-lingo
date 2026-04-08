@@ -147,27 +147,55 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
                   if (filteredUnits.isEmpty) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _selectedTab == 1
-                                ? Icons.check_circle_outline_rounded
-                                : Icons.flag_outlined,
-                            size: 64,
-                            color: Colors.grey.withValues(alpha: 0.3),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _selectedTab == 1
-                                ? "No units completed yet."
-                                : "You've finished everything!",
-                            style: TextStyle(
-                                color: Colors.grey.withValues(alpha: 0.6),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFECCF)
+                                    .withValues(alpha: 0.3),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _selectedTab == 1
+                                    ? Icons.auto_awesome_rounded
+                                    : Icons.auto_stories_rounded,
+                                size: 48,
+                                color: const Color(0xFF1B2431)
+                                    .withValues(alpha: 0.2),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              _selectedTab == 1
+                                  ? "No units completed yet"
+                                  : "All units completed!",
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1B2431),
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _selectedTab == 1
+                                  ? "Start your learning journey to see completed units here."
+                                  : "You've mastered everything in this course. Great job!",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: const Color(0xFF1B2431)
+                                    .withValues(alpha: 0.5),
+                                fontSize: 14,
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
@@ -217,7 +245,7 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   Widget _buildHeaderTitle() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -400,44 +428,48 @@ class _LessonPathScreenState extends State<LessonPathScreen>
 
   Widget _buildModernTabs() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        height: 52,
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFECCF).withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _TabItem(
-                label: "Ongoing",
-                isSelected: _selectedTab == 0,
-                onTap: () => setState(() => _selectedTab = 0),
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: _FolderTab(
+              label: "Ongoing",
+              isSelected: _selectedTab == 0,
+              isLeft: true,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() => _selectedTab = 0);
+              },
             ),
-            Expanded(
-              child: _TabItem(
-                label: "Completed",
-                isSelected: _selectedTab == 1,
-                onTap: () => setState(() => _selectedTab = 1),
-              ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _FolderTab(
+              label: "Completed",
+              isSelected: _selectedTab == 1,
+              isLeft: false,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() => _selectedTab = 1);
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _TabItem extends StatelessWidget {
+class _FolderTab extends StatelessWidget {
   final String label;
   final bool isSelected;
+  final bool isLeft;
   final VoidCallback onTap;
 
-  const _TabItem({
+  const _FolderTab({
     required this.label,
     required this.isSelected,
+    required this.isLeft,
     required this.onTap,
   });
 
@@ -445,25 +477,74 @@ class _TabItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.all(4),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFECCF) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color:
-                isSelected ? const Color(0xFF4B5563) : const Color(0xFF9CA3AF),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-            fontSize: 15,
+      child: ClipPath(
+        clipper: _TabClipper(isLeft: isLeft),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 48,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFFEFECCF)
+                : const Color(0xFFEFECCF).withValues(alpha: 0.3),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected
+                  ? const Color(0xFF1B2431)
+                  : const Color(0xFF1B2431).withValues(alpha: 0.4),
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              fontSize: 16,
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+class _TabClipper extends CustomClipper<Path> {
+  final bool isLeft;
+  _TabClipper({required this.isLeft});
+
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    double cutWidth = 18.0;
+    double radius = 12.0;
+
+    if (isLeft) {
+      // Slant on top-right
+      path.moveTo(radius, 0);
+      path.lineTo(size.width - cutWidth, 0);
+      path.lineTo(size.width, size.height * 0.4);
+      path.lineTo(size.width, size.height - radius);
+      path.quadraticBezierTo(
+          size.width, size.height, size.width - radius, size.height);
+      path.lineTo(radius, size.height);
+      path.quadraticBezierTo(0, size.height, 0, size.height - radius);
+      path.lineTo(0, radius);
+      path.quadraticBezierTo(0, 0, radius, 0);
+    } else {
+      // Slant on top-left
+      path.moveTo(cutWidth, 0);
+      path.lineTo(size.width - radius, 0);
+      path.quadraticBezierTo(size.width, 0, size.width, radius);
+      path.lineTo(size.width, size.height - radius);
+      path.quadraticBezierTo(
+          size.width, size.height, size.width - radius, size.height);
+      path.lineTo(radius, size.height);
+      path.quadraticBezierTo(0, size.height, 0, size.height - radius);
+      path.lineTo(0, size.height * 0.4); // Angled cut
+      path.lineTo(cutWidth, 0);
+    }
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => true;
 }
 
 class _ModernUnitCard extends StatelessWidget {
@@ -488,62 +569,67 @@ class _ModernUnitCard extends StatelessWidget {
     if (totalCount == 0) totalCount = unit.lessonCount?.toInt() ?? 1;
     bool isCurrentUnit = unit.lessons?.any((l) => l.isCurrent == true) ?? false;
     double progressValue = totalCount > 0 ? (completedCount / totalCount) : 0;
+    const Color vDarkSlate = Color(0xFF1F2937);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: const EdgeInsets.only(bottom: 16),
         child: Stack(
           children: [
             // Main Card
             Container(
-              constraints: const BoxConstraints(minHeight: 140),
+              constraints: const BoxConstraints(minHeight: 120),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     backgroundColor,
                     Color.alphaBlend(
-                      Colors.white.withValues(alpha: 0.5),
+                      vDarkSlate.withValues(alpha: 0.03),
                       backgroundColor,
                     ),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: vDarkSlate.withValues(alpha: 0.08),
+                  width: 1.2,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: backgroundColor.withValues(alpha: 0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    color: backgroundColor.withValues(alpha: 0.5),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(28),
                 child: Stack(
                   children: [
                     // Decorative Background Shapes
                     Positioned(
-                      right: -30,
-                      top: -30,
+                      right: -25,
+                      top: -25,
                       child: Container(
-                        width: 140,
-                        height: 140,
+                        width: 120,
+                        height: 120,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                       ),
                     ),
                     Positioned(
-                      left: -20,
-                      bottom: -40,
+                      left: -15,
+                      bottom: -35,
                       child: Container(
-                        width: 110,
-                        height: 110,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: Colors.white.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -551,7 +637,8 @@ class _ModernUnitCard extends StatelessWidget {
 
                     // Content
                     Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 18),
                       child: Row(
                         children: [
                           // Progress Circular Indicator
@@ -559,35 +646,35 @@ class _ModernUnitCard extends StatelessWidget {
                             alignment: Alignment.center,
                             children: [
                               SizedBox(
-                                width: 72,
-                                height: 72,
+                                width: 58,
+                                height: 58,
                                 child: CircularProgressIndicator(
                                   value: 1.0,
-                                  strokeWidth: 8,
-                                  color: Colors.white.withValues(alpha: 0.4),
+                                  strokeWidth: 6,
+                                  color: Colors.white.withValues(alpha: 0.6),
                                 ),
                               ),
                               SizedBox(
-                                width: 72,
-                                height: 72,
+                                width: 58,
+                                height: 58,
                                 child: CircularProgressIndicator(
                                   value: progressValue,
-                                  strokeWidth: 8,
+                                  strokeWidth: 6,
                                   strokeCap: StrokeCap.round,
-                                  color: const Color(0xFF1B2431),
+                                  color: vDarkSlate.withValues(alpha: 0.8),
                                 ),
                               ),
                               Container(
-                                width: 52,
-                                height: 52,
+                                width: 42,
+                                height: 42,
                                 decoration: const BoxDecoration(
                                   color: Colors.white,
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black12,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
+                                      blurRadius: 3,
+                                      offset: Offset(0, 1),
                                     ),
                                   ],
                                 ),
@@ -596,14 +683,14 @@ class _ModernUnitCard extends StatelessWidget {
                                   unitIndex.toString().padLeft(2, '0'),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w900,
-                                    fontSize: 20,
-                                    color: Color(0xFF1B2431),
+                                    fontSize: 16,
+                                    color: vDarkSlate,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(width: 20),
+                          const SizedBox(width: 16),
 
                           // Unit Details
                           Expanded(
@@ -611,34 +698,40 @@ class _ModernUnitCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                if (isCurrentUnit)
-                                  Container(
-                                    margin: const EdgeInsets.only(bottom: 4),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF1B2431),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Text(
-                                      "CURRENT",
+                                Row(
+                                  children: [
+                                    Text(
+                                      "UNIT $unitIndex".toUpperCase(),
                                       style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                        letterSpacing: 0.5,
+                                        fontSize: 11,
+                                        letterSpacing: 1.2,
+                                        fontWeight: FontWeight.w800,
+                                        color:
+                                            vDarkSlate.withValues(alpha: 0.5),
                                       ),
                                     ),
-                                  ),
-                                Text(
-                                  "UNIT $unitIndex".toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    letterSpacing: 1.2,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF1B2431)
-                                        .withValues(alpha: 0.5),
-                                  ),
+                                    if (isCurrentUnit) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 7, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: vDarkSlate,
+                                          borderRadius:
+                                              BorderRadius.circular(5),
+                                        ),
+                                        child: const Text(
+                                          "CURRENT",
+                                          style: TextStyle(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                            letterSpacing: 0.4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -646,30 +739,29 @@ class _ModernUnitCard extends StatelessWidget {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF1B2431),
-                                    height: 1.1,
-                                    letterSpacing: -0.5,
+                                    color: vDarkSlate,
+                                    height: 1.15,
+                                    letterSpacing: -0.4,
                                   ),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
                                 Row(
                                   children: [
                                     Icon(
                                       Icons.menu_book_rounded,
-                                      size: 14,
-                                      color: const Color(0xFF1B2431)
-                                          .withValues(alpha: 0.5),
+                                      size: 13,
+                                      color: vDarkSlate.withValues(alpha: 0.5),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
                                       "$completedCount/$totalCount Lessons",
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF1B2431)
-                                            .withValues(alpha: 0.7),
+                                        color:
+                                            vDarkSlate.withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],
@@ -682,20 +774,20 @@ class _ModernUnitCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: vDarkSlate,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
                             child: const Icon(
                               Icons.play_arrow_rounded,
-                              size: 20,
-                              color: Color(0xFF1B2431),
+                              size: 18,
+                              color: Colors.white,
                             ),
                           ),
                         ],
