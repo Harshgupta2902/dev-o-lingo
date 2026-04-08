@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 class LessonPathSkeleton extends StatelessWidget {
   final bool isUnitList;

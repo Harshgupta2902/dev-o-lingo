@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
@@ -290,26 +289,24 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
     if (_startButtonPathIndex == null) return;
     final key = _lessonKeys[_startButtonPathIndex];
     if (key == null || key.currentContext == null) return;
-    try {
-      final renderObject = key.currentContext!.findRenderObject();
-      if (renderObject == null) return;
-      if (renderObject is RenderBox) {
-        final box = renderObject;
-        final offset = box.localToGlobal(Offset.zero).dy;
-        final screenHeight = MediaQuery.of(context).size.height;
-        final buttonHeight = box.size.height;
-        final isVisible =
-            (offset + buttonHeight) >= 160 && offset <= (screenHeight - 80);
-        final isAbove = offset < 160;
-        if (_isStartButtonVisible != isVisible ||
-            _isStartButtonAbove != isAbove) {
-          setState(() {
-            _isStartButtonVisible = isVisible;
-            _isStartButtonAbove = isAbove;
-          });
-        }
+    final renderObject = key.currentContext!.findRenderObject();
+    if (renderObject == null) return;
+    if (renderObject is RenderBox) {
+      final box = renderObject;
+      final offset = box.localToGlobal(Offset.zero).dy;
+      final screenHeight = MediaQuery.of(context).size.height;
+      final buttonHeight = box.size.height;
+      final isVisible =
+          (offset + buttonHeight) >= 160 && offset <= (screenHeight - 80);
+      final isAbove = offset < 160;
+      if (_isStartButtonVisible != isVisible ||
+          _isStartButtonAbove != isAbove) {
+        setState(() {
+          _isStartButtonVisible = isVisible;
+          _isStartButtonAbove = isAbove;
+        });
       }
-    } catch (e) {}
+    }
   }
 
   void _onScroll() {

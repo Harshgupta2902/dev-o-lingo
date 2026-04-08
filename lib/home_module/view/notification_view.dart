@@ -161,7 +161,7 @@ class _NotificationTile extends StatelessWidget {
       updatedAt = DateTime.now();
     }
 
-    final String timeAgo = DateFormat.yMMMd().add_jm().format(updatedAt!);
+    final String timeAgo = DateFormat.yMMMd().add_jm().format(updatedAt);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),

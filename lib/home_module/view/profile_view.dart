@@ -5,7 +5,6 @@ import 'package:lingolearn/home_module/controller/profile_controller.dart';
 import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
 import 'package:lingolearn/home_module/view/follows_screen.dart';
-import 'package:lingolearn/home_module/view/quiz_screen.dart';
 import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
@@ -207,37 +206,6 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSimpleStat(BuildContext context,
-      {required String count,
-      required String label,
-      required VoidCallback onTap}) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          children: [
-            Text(
-              count,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: kOnSurface,
-              ),
-            ),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: kMuted,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

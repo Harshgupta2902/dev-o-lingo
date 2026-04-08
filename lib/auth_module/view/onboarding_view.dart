@@ -404,11 +404,11 @@ class _OnBoardingViewState extends State<OnBoardingView>
               const SizedBox(height: 16),
               SlideTransition(
                 position: _slideAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 40),
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         "Your coding journey starts now",
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -418,8 +418,8 @@ class _OnBoardingViewState extends State<OnBoardingView>
                           height: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         "Let's create your profile and track progress!",
                         textAlign: TextAlign.center,
                         style: TextStyle(

@@ -1,17 +1,10 @@
-// exercise_view.dart
-// ignore_for_file: deprecated_member_use, avoid_print, unnecessary_to_list_in_spreads
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/exercises_controller.dart';
-import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
-import 'package:lingolearn/home_module/models/exercises_model.dart';
 import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:lingolearn/home_module/widgets/course_overview_card.dart';
 import 'package:lingolearn/utilities/common/secondary_header.dart';
 import 'package:lingolearn/utilities/skeleton/exercise_view_skeleton.dart';

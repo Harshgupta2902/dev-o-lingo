@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/exercises_controller.dart';
-import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/home_module/models/exercises_model.dart';
 import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
@@ -205,7 +204,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
 
     if (result == true) {
       await _forceSubmit();
-      return false; // Very important: _forceSubmit will handle navigation
+      return false;
     }
     return false;
   }
