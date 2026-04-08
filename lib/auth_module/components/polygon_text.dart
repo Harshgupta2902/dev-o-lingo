@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lingolearn/utilities/constants/assets_path.dart';
-import 'package:lingolearn/utilities/theme/app_box_decoration.dart';
+import 'package:lingolearn/utilities/theme/app_colors.dart';
 
 enum TriangleDirection { top, bottom, left, right }
 
@@ -50,21 +50,28 @@ class PolygonTextBox extends StatelessWidget {
       children: [
         triangle,
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: AppBoxDecoration.getBoxDecoration(
-            color: Colors.grey.shade200,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: Colors.grey[300]!,
+              color: kSandyBorder,
               width: 2,
             ),
-            borderRadius: borderRadius,
+            boxShadow: [
+              BoxShadow(
+                color: kDarkSlate.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: kOnSurface,
             ),
           ),
         ),

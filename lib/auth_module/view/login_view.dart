@@ -44,7 +44,7 @@ class _LoginViewState extends State<LoginView> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: kBeigeBg,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -57,83 +57,107 @@ class _LoginViewState extends State<LoginView> {
                   title: "Hi there! I’m El!",
                   direction: TriangleDirection.bottom,
                   offset: 70,
-                  borderRadius: 14,
+                  borderRadius: 24,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 32),
 
                 /// 👋 Emoji or SVG
                 SvgPicture.asset(
                   AssetPath.hiImg,
-                  height: 180,
+                  height: 160,
                 ),
-                const SizedBox(height: kToolbarHeight),
+                const SizedBox(height: 48),
 
                 /// 📝 App Name & Tagline
                 const Text(
                   'Lingo Learn',
                   style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: kPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Learn coding languages whenever and\nwherever you want. It\'s free and forever.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
+                    fontFamily: 'serif',
+                    fontSize: 48,
                     fontWeight: FontWeight.w600,
+                    color: kOnSurface,
+                    letterSpacing: -1.5,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Learn coding languages whenever and wherever you want. It\'s free and forever.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: kMuted,
+                      fontWeight: FontWeight.w500,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 60),
               ],
             ),
           ),
         ),
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Divider(),
-          const SizedBox(height: 16),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              boxShadow: AppBoxShadow.mainButtonShadow,
-              borderRadius: BorderRadius.circular(25),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              height: 64,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: kDarkSlate.withValues(alpha: 0.1),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () async {
+                  await _handleGoogleAuth();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kDarkSlate,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  "GET STARTED",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
             ),
-            child: ElevatedButton(
+            const SizedBox(height: 16),
+            TextButton(
               onPressed: () async {
                 await _handleGoogleAuth();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C4AFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                minimumSize: const Size.fromHeight(48),
+              style: TextButton.styleFrom(
+                foregroundColor: kMuted,
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Text("GET STARTED"),
+              child: const Text(
+                "I ALREADY HAVE AN ACCOUNT",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () async {
-              await _handleGoogleAuth();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF6C4AFF),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            child: const Text(
-              "I ALREADY HAVE AN ACCOUNT",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
+          ],
+        ),
       ),
     );
   }
