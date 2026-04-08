@@ -15,6 +15,7 @@ import 'package:lingolearn/config.dart';
 import 'package:lingolearn/main.dart' hide userStatsController;
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/home_module/widgets/course_overview_card.dart';
+import 'package:lingolearn/utilities/common/secondary_header.dart';
 
 class UnitLessonsView extends StatefulWidget {
   final Units selectedUnit;
@@ -129,7 +130,7 @@ class _UnitLessonsViewState extends State<UnitLessonsView>
       backgroundColor: kSurface,
       body: Column(
         children: [
-          _buildHeader(),
+          _buildUnitHeader(),
           Expanded(
             child: DuolingoLessonPathView(
               pathItems: pathItems,
@@ -149,85 +150,14 @@ class _UnitLessonsViewState extends State<UnitLessonsView>
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildUnitHeader() {
     final unitIndex = widget.units.indexOf(widget.selectedUnit) + 1;
     final accentColor = unitColors[(unitIndex - 1) % unitColors.length];
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: kBorder, width: 1.5),
-        ),
-      ),
-      padding: const EdgeInsets.only(top: 45, left: 12, right: 24, bottom: 12),
-      child: Row(
-        children: [
-          _buildCircleBackButton(),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "UNIT $unitIndex",
-                  style: TextStyle(
-                    color: accentColor.withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                    letterSpacing: 2.0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.selectedUnit.name ?? "Lessons",
-                  style: const TextStyle(
-                    fontFamily: 'serif',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22,
-                    color: kDarkSlate,
-                    height: 1.1,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircleBackButton() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: kBorder, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => MyNavigator.pop(),
-          borderRadius: BorderRadius.circular(100),
-          child: const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.arrow_back_rounded,
-              color: kDarkSlate,
-              size: 20,
-            ),
-          ),
-        ),
-      ),
+    return SecondaryHeader(
+      title: widget.selectedUnit.name ?? "Lessons",
+      subtitle: "UNIT $unitIndex",
+      subtitleColor: accentColor.withValues(alpha: 0.8),
     );
   }
 }

@@ -13,6 +13,7 @@ import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:lingolearn/home_module/widgets/course_overview_card.dart';
+import 'package:lingolearn/utilities/common/secondary_header.dart';
 import 'package:lingolearn/utilities/skeleton/exercise_view_skeleton.dart';
 
 final exerciseController = Get.put(ExercisesController());
@@ -43,7 +44,10 @@ class _ExerciseViewState extends State<ExerciseView> {
           final data = state?.data?.exercise;
           return Column(
             children: [
-              _buildHeader(data?.title ?? "Exercise"),
+              SecondaryHeader(
+                title: data?.title ?? "Exercise",
+                subtitle: "LESSON OVERVIEW",
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -74,84 +78,6 @@ class _ExerciseViewState extends State<ExerciseView> {
     );
   }
 
-  Widget _buildHeader(String title) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: kBorder, width: 1.5),
-        ),
-      ),
-      padding: const EdgeInsets.only(top: 45, left: 16, right: 24, bottom: 16),
-      child: Row(
-        children: [
-          _buildCircleBackButton(),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "LESSON OVERVIEW",
-                  style: TextStyle(
-                    color: kMuted,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 11,
-                    letterSpacing: 2.0,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'serif',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22,
-                    color: kDarkSlate,
-                    height: 1.1,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircleBackButton() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: kBorder, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => MyNavigator.pop(),
-          borderRadius: BorderRadius.circular(100),
-          child: const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.arrow_back_rounded,
-              color: kDarkSlate,
-              size: 20,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildBottomBar() {
     return userStatsController.obx((state) {

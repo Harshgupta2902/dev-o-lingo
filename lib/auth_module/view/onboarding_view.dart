@@ -9,6 +9,7 @@ import 'package:lingolearn/auth_module/controller/auth_controller.dart';
 import 'package:lingolearn/auth_module/controller/onboarding_controller.dart';
 import 'package:lingolearn/auth_module/models/onboarding_model.dart';
 import 'package:lingolearn/utilities/common/scaffold_messenger.dart';
+import 'package:lingolearn/utilities/common/secondary_header.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
@@ -90,7 +91,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: kBeigeBg,
       body: onBoardingController.obx(
         (onboardingModel) {
           final questions = onboardingModel?.data ?? [];
@@ -123,28 +124,11 @@ class _OnBoardingViewState extends State<OnBoardingView>
     String key,
   ) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        forceMaterialTransparency: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new,
-                color: Color(0xFF1E293B), size: 20),
-            onPressed: () {
+      backgroundColor: kBeigeBg,
+      body: Column(
+        children: [
+          SecondaryHeader(
+            onBackTap: () {
               if (currentPage > 0) {
                 setState(() {
                   currentPage--;
@@ -155,45 +139,36 @@ class _OnBoardingViewState extends State<OnBoardingView>
                 MyNavigator.pop();
               }
             },
-          ),
-        ),
-        title: Container(
-          height: 8,
-          width: MediaQuery.of(context).size.width * 0.6,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+            customTitle: Container(
+              height: 10,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                color: Colors.white,
+                border: Border.all(color: kSandyBorder, width: 1),
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: (currentPage + 1) /
-                  (onboardingController.questions.length + 4),
-              backgroundColor: const Color(0xFFE2E8F0),
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: LinearProgressIndicator(
+                  value: (currentPage + 1) /
+                      (onboardingController.questions.length + 4),
+                  backgroundColor: kBeigeBg,
+                  valueColor: const AlwaysStoppedAnimation<Color>(kPrimary),
+                ),
+              ),
             ),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                ScaleTransition(
+          Expanded(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      ScaleTransition(
                   scale: _scaleAnimation,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,18 +217,25 @@ class _OnBoardingViewState extends State<OnBoardingView>
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 18),
+                              vertical: 14, horizontal: 18),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? kPrimary.withOpacity(0.1)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(22),
                             border: Border.all(
                               color: isSelected
                                   ? kPrimary
-                                  : const Color(0xFFE2E8F0),
-                              width: isSelected ? 3 : 2,
+                                  : kSandyBorder,
+                              width: isSelected ? 3 : 1.5,
                             ),
+                            boxShadow: isSelected ? [
+                              BoxShadow(
+                                color: kPrimary.withOpacity(0.2),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              )
+                            ] : [],
                           ),
                           child: Row(
                             children: [
@@ -277,23 +259,23 @@ class _OnBoardingViewState extends State<OnBoardingView>
                                 child: Text(
                                   option.name!,
                                   style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1E293B),
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: kOnSurface,
                                   ),
                                 ),
                               ),
                               if (isSelected)
                                 Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: Color(int.parse(option.color!)),
-                                    borderRadius: BorderRadius.circular(12),
+                                  width: 26,
+                                  height: 26,
+                                  decoration: const BoxDecoration(
+                                    color: kPrimary,
+                                    shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.check,
-                                    color: Colors.white,
+                                    color: kDarkSlate,
                                     size: 16,
                                   ),
                                 ),
@@ -304,40 +286,29 @@ class _OnBoardingViewState extends State<OnBoardingView>
                     );
                   },
                 ),
-              ],
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          height: 56,
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+        color: Colors.transparent,
+        child: Container(
+          height: 64,
           decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: selectedOption != null ? [
+              BoxShadow(
+                color: kDarkSlate.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 6),
-                ),
-              ]),
+            ] : [],
+          ),
           child: ElevatedButton(
             onPressed: selectedOption != null
                 ? () {
@@ -351,10 +322,11 @@ class _OnBoardingViewState extends State<OnBoardingView>
                   }
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
+              backgroundColor: kDarkSlate,
+              disabledBackgroundColor: kMuted.withOpacity(0.2),
               shadowColor: Colors.transparent,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(20),
               ),
               foregroundColor: Colors.white,
             ),
@@ -362,10 +334,10 @@ class _OnBoardingViewState extends State<OnBoardingView>
               "CONTINUE",
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.bold,
                 color: selectedOption != null
                     ? Colors.white
-                    : const Color(0xFF94A3B8),
+                    : kMuted.withOpacity(0.5),
                 letterSpacing: 1.2,
               ),
             ),
@@ -377,7 +349,7 @@ class _OnBoardingViewState extends State<OnBoardingView>
 
   Widget _buildSuccessPage() {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: kBeigeBg,
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
@@ -388,24 +360,21 @@ class _OnBoardingViewState extends State<OnBoardingView>
                 title: "Awesome!",
                 offset: 50,
                 direction: TriangleDirection.bottom,
-                borderRadius: 12,
+                borderRadius: 24,
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 48),
               ScaleTransition(
                 scale: _scaleAnimation,
                 child: Container(
-                  width: 150,
-                  height: 150,
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(75),
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: kSandyBorder, width: 4),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(0.4),
+                        color: kDarkSlate.withValues(alpha: 0.1),
                         blurRadius: 30,
                         offset: const Offset(0, 10),
                       ),
@@ -414,43 +383,54 @@ class _OnBoardingViewState extends State<OnBoardingView>
                   child: const Center(
                     child: Text(
                       '🎉',
-                      style: TextStyle(fontSize: 60),
+                      style: TextStyle(fontSize: 64),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 48),
               SlideTransition(
                 position: _slideAnimation,
                 child: const Text(
                   "Welcome to DevLingo!",
                   style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E293B),
+                    fontFamily: 'serif',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    color: kOnSurface,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               SlideTransition(
                 position: _slideAnimation,
-                child: const Text(
-                  "Your coding journey starts now",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ),
-              SlideTransition(
-                position: _slideAnimation,
-                child: const Text(
-                  "Create a profile to keep track of your journey",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF64748B),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Column(
+                    children: [
+                      const Text(
+                        "Your coding journey starts now",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: kMuted,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        "Let's create your profile and track progress!",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: kMuted,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -458,42 +438,56 @@ class _OnBoardingViewState extends State<OnBoardingView>
           ),
         ),
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Divider(),
-          const SizedBox(height: 16),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              boxShadow: AppBoxShadow.mainButtonShadow,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: ElevatedButton(
-              onPressed: () async {
-                final googleUser = await authController.signInSilently();
-                final userId = await authController.fetchUserData(googleUser);
-
-                final response =
-                    await authController.submitOnboarding(userId.toString());
-                if (response['status'] == true) {
-                  MyNavigator.pushNamed(GoPaths.dashboardView);
-                } else {
-                  messageScaffold(content: response['message']);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C4AFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                minimumSize: const Size.fromHeight(48),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              height: 64,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: kDarkSlate.withValues(alpha: 0.1),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              child: const Text("GET STARTED"),
+              child: ElevatedButton(
+                onPressed: () async {
+                  final googleUser = await authController.signInSilently();
+                  final userId = await authController.fetchUserData(googleUser);
+
+                  final response =
+                      await authController.submitOnboarding(userId.toString());
+                  if (response['status'] == true) {
+                    MyNavigator.pushNamed(GoPaths.dashboardView);
+                  } else {
+                    messageScaffold(content: response['message'] ?? "Something went wrong");
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kDarkSlate,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  "GET STARTED",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+          ],
+        ),
       ),
     );
   }
