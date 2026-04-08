@@ -21,16 +21,19 @@ class SocialLoginResponse {
 class SocialLoginData {
   final String jwtToken;
   final User user;
+  final bool onboardingRequired;
 
   SocialLoginData({
     required this.jwtToken,
     required this.user,
+    required this.onboardingRequired,
   });
 
   factory SocialLoginData.fromJson(Map<String, dynamic> json) {
     return SocialLoginData(
       jwtToken: json['jwtToken'] ?? '',
       user: User.fromJson(json['user']),
+      onboardingRequired: json['onboardingRequired'] ?? false,
     );
   }
 }

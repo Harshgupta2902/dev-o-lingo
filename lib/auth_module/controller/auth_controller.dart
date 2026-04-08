@@ -123,12 +123,18 @@ class AuthController extends GetxController
         content: "Login Successful ${modal.data.user.name}",
         messageScaffoldType: MessageScaffoldType.success,
       );
-      await languageController.getLanguageData();
-      MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
+
+      if (modal.data.onboardingRequired) {
+        debugPrint("Onboarding incomplete → going to onboarding flow");
+        MyNavigator.pushNamed(GoPaths.onBoardingView);
+      } else {
+        await languageController.getLanguageData();
+        MyNavigator.popUntilAndPushNamed(GoPaths.dashboardView);
+      }
 
       return modal.data.user.id;
     } catch (error) {
-      change(null, status: RxStatus.error());
+      change(null, status: RxStatus.error()); 
     } finally {
       debugPrint("---------- fetchUserData End ----------");
     }
