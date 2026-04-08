@@ -30,6 +30,7 @@ class CustomHeader extends StatelessWidget {
             title,
             style: const TextStyle(
               fontSize: 24,
+              fontFamily: 'serif',
               fontWeight: FontWeight.w700,
               color: kOnSurface,
               letterSpacing: -0.5,

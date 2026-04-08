@@ -115,7 +115,7 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(

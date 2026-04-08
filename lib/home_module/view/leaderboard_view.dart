@@ -144,10 +144,10 @@ class _FilterPill extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? kPrimary : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(40),
           border: Border.all(
             color: isSelected ? kPrimary : kBorder,
             width: 1.5,
@@ -155,10 +155,10 @@ class _FilterPill extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : kMuted,
+            color: kMuted,
           ),
         ),
       ),
