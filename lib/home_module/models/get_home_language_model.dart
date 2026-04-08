@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class GetHomeLanguageModel {
   GetHomeLanguageModel({
     this.status,
@@ -173,6 +175,11 @@ class Stats {
     this.levelEmoji,
     this.nextLevelXp,
     this.xpToNext,
+    this.showHome = true,
+    this.showDailyPractise = true,
+    this.showLeaderboard = true,
+    this.showPractiseCenter = true,
+    this.showProfile = true,
   });
 
   Stats.fromJson(dynamic json) {
@@ -194,6 +201,13 @@ class Stats {
       nextLevelXp = json['level']['next_level_xp'];
       xpToNext = json['level']['xp_to_next'];
     }
+    showHome = json['showHome'] ?? true;
+    showDailyPractise = json['showDailyPractise'] ?? true;
+    showLeaderboard = json['showLeaderboard'] ?? true;
+    showPractiseCenter = json['showPractiseCenter'] ?? true;
+    showProfile = json['showProfile'] ?? true;
+    debugPrint(
+        "STATS PARSED: Home=$showHome, Daily=$showDailyPractise, Leader=$showLeaderboard, PracticeCenter=$showPractiseCenter, Profile=$showProfile");
   }
   num? id;
   num? userId;
@@ -211,6 +225,11 @@ class Stats {
   String? levelEmoji;
   int? nextLevelXp;
   int? xpToNext;
+  bool? showHome;
+  bool? showDailyPractise;
+  bool? showLeaderboard;
+  bool? showPractiseCenter;
+  bool? showProfile;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -232,6 +251,11 @@ class Stats {
       'next_level_xp': nextLevelXp,
       'xp_to_next': xpToNext,
     };
+    map['showHome'] = showHome;
+    map['showDailyPractise'] = showDailyPractise;
+    map['showLeaderboard'] = showLeaderboard;
+    map['showPractiseCenter'] = showPractiseCenter;
+    map['showProfile'] = showProfile;
     return map;
   }
 }

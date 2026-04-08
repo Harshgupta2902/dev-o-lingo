@@ -9,6 +9,8 @@ import 'package:lingolearn/utilities/constants/storage_keys.dart';
 import 'package:lingolearn/home_module/controller/app_controller.dart';
 
 class UserStatsController extends GetxController with StateMixin<Stats> {
+  final rxStats = Rxn<Stats>();
+
   @override
   void onInit() {
     super.onInit();
@@ -19,8 +21,9 @@ class UserStatsController extends GetxController with StateMixin<Stats> {
     final cachedData = prefs.read(StorageKeys.userStatsCache);
     if (cachedData != null) {
       try {
-        final modal =
-            Stats.fromJson(cachedData is String ? jsonDecode(cachedData) : cachedData);
+        final modal = Stats.fromJson(
+            cachedData is String ? jsonDecode(cachedData) : cachedData);
+        rxStats.value = modal;
         change(modal, status: RxStatus.success());
       } catch (e) {
         debugPrint("Error loading cached user stats: $e");
@@ -46,20 +49,18 @@ class UserStatsController extends GetxController with StateMixin<Stats> {
 
       // Cache the response data
       prefs.write(StorageKeys.userStatsCache, responseData['data']);
-      
+
       // Update global online status
       Get.find<AppController>().isOnline.value = true;
 
       final modal = Stats.fromJson(responseData['data']);
+      rxStats.value = modal;
       change(modal, status: RxStatus.success());
     } catch (error) {
       debugPrint(
           "---------- $apiEndPoint getUserStats End With Error ----------");
       debugPrint("UserStatsController => getUserStats > Error $error ");
 
-      // Update global online status (don't force false here if language sync succeeded,
-      // but AppController handles this parallelism anyway)
-      
       if (state == null) {
         change(null, status: RxStatus.error(error.toString()));
       }
@@ -71,6 +72,7 @@ class UserStatsController extends GetxController with StateMixin<Stats> {
   void updateHearts(num count) {
     if (state != null) {
       state!.hearts = count;
+      rxStats.value = state;
       change(state, status: RxStatus.success());
     }
   }
@@ -78,6 +80,7 @@ class UserStatsController extends GetxController with StateMixin<Stats> {
   void updateXP(num xp) {
     if (state != null) {
       state!.xp = xp.toInt();
+      rxStats.value = state;
       change(state, status: RxStatus.success());
     }
   }

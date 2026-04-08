@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lingolearn/utilities/common/key_value_pair_model.dart';
+import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
@@ -14,104 +16,135 @@ class CustomBottomNavigationBar extends StatefulWidget {
 }
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
-  int _index = 0;
+  List<_NavTab> _getFilteredTabs() {
+    final stats = userStatsController.rxStats.value;
+    final allTabs = [
+      _NavTab(
+        icon: Icons.home_rounded,
+        label: "Home",
+        route: GoPaths.dashboardView,
+        isVisible: stats?.showHome ?? true,
+      ),
+      _NavTab(
+        icon: Icons.auto_awesome_rounded,
+        label: "Stories",
+        route: GoPaths.dailyPracticesScreen,
+        isVisible: stats?.showDailyPractise ?? true,
+      ),
+      _NavTab(
+        icon: Icons.leaderboard_rounded,
+        label: "Rank",
+        route: GoPaths.leaderBoardView,
+        isVisible: stats?.showLeaderboard ?? true,
+      ),
+      _NavTab(
+        icon: Icons.auto_stories_rounded,
+        label: "Learn",
+        route: GoPaths.practiceCenterScreen,
+        isVisible: stats?.showPractiseCenter ?? true,
+      ),
+      _NavTab(
+        icon: Icons.person_rounded,
+        label: "Profile",
+        route: GoPaths.profileView,
+        isVisible: stats?.showProfile ?? true,
+      ),
+    ];
 
-  final List<KeyValuePairModel> bars = [
-    KeyValuePairModel(key: Icons.home_rounded, value: "Home"),
-    KeyValuePairModel(key: Icons.auto_awesome_rounded, value: "Stories"),
-    KeyValuePairModel(key: Icons.leaderboard_rounded, value: "Rank"),
-    KeyValuePairModel(key: Icons.auto_stories_rounded, value: "Learn"),
-    KeyValuePairModel(key: Icons.person_rounded, value: "Profile"),
-  ];
+    return allTabs.where((tab) => tab.isVisible).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: kDarkSlate.withValues(alpha: 0.08),
-            width: 1.5,
+    return Obx(() {
+      final tabs = _getFilteredTabs();
+      if (tabs.isEmpty) return const SizedBox.shrink();
+
+      final String currentPath = GoRouterState.of(context).uri.path;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: kDarkSlate.withValues(alpha: 0.08),
+              width: 1.5,
+            ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Container(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(bars.length, (index) {
-              final isSelected = _index == index;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    setState(() => _index = index);
-                    _onItemTapped(index);
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedScale(
-                        duration: const Duration(milliseconds: 200),
-                        scale: isSelected ? 1.15 : 1.0,
-                        child: Icon(
-                          bars[index].key,
-                          color: isSelected
-                              ? kDarkSlate
-                              : kDarkSlate.withValues(alpha: 0.35),
-                          size: 26,
+        child: SafeArea(
+          child: SizedBox(
+            height: 64,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(tabs.length, (index) {
+                final tab = tabs[index];
+                // Check if this tab is the active one based on the route
+                final isSelected = currentPath.startsWith(tab.route);
+
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (!isSelected) {
+                        HapticFeedback.lightImpact();
+                        MyNavigator.pushNamed(tab.route);
+                      }
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedScale(
+                          duration: const Duration(milliseconds: 200),
+                          scale: isSelected ? 1.15 : 1.0,
+                          child: Icon(
+                            tab.icon,
+                            color: isSelected
+                                ? kDarkSlate
+                                : kDarkSlate.withValues(alpha: 0.35),
+                            size: 26,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: isSelected ? 4 : 0,
-                        height: 4,
-                        decoration: const BoxDecoration(
-                          color: kDarkSlate,
-                          shape: BoxShape.circle,
+                        const SizedBox(height: 6),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: isSelected ? 4 : 0,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                            color: kDarkSlate,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
-void _onItemTapped(int index) {
-  switch (index) {
-    case 0:
-      MyNavigator.pushNamed(GoPaths.dashboardView);
-      break;
-    case 1:
-      MyNavigator.pushNamed(GoPaths.dailyPracticesScreen);
-      break;
-    case 2:
-      MyNavigator.pushNamed(GoPaths.leaderBoardView);
-      break;
-    case 3:
-      MyNavigator.pushNamed(GoPaths.practiceCenterScreen);
-      break;
-    case 4:
-      MyNavigator.pushNamed(GoPaths.profileView);
-      break;
-    default:
-      MyNavigator.pushNamed(GoPaths.dashboardView);
-  }
+class _NavTab {
+  final IconData icon;
+  final String label;
+  final String route;
+  final bool isVisible;
+
+  _NavTab({
+    required this.icon,
+    required this.label,
+    required this.route,
+    this.isVisible = true,
+  });
 }
