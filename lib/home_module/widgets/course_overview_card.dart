@@ -6,7 +6,8 @@ class OverviewResource {
   final String type;
   final String title;
   final String url;
-  OverviewResource({required this.type, required this.title, required this.url});
+  OverviewResource(
+      {required this.type, required this.title, required this.url});
 }
 
 class CourseOverviewCard extends StatelessWidget {
@@ -30,7 +31,10 @@ class CourseOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (description.isEmpty && resources.isEmpty) return const SizedBox.shrink();
+    debugPrint(description);
+
+    if (description.isEmpty && resources.isEmpty)
+      return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,18 +54,24 @@ class CourseOverviewCard extends StatelessWidget {
           // Divider & Label
           Row(
             children: [
-              Expanded(child: Divider(color: themeColor.withValues(alpha: 0.3), thickness: 1.5)),
+              Expanded(
+                  child: Divider(
+                      color: themeColor.withValues(alpha: 0.3),
+                      thickness: 1.5)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(100),
-                  border: Border.all(color: themeColor.withValues(alpha: 0.3), width: 1.5),
+                  border: Border.all(
+                      color: themeColor.withValues(alpha: 0.3), width: 1.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.auto_awesome_rounded, size: 16, color: themeColor),
+                    Icon(Icons.auto_awesome_rounded,
+                        size: 16, color: themeColor),
                     const SizedBox(width: 8),
                     Text(
                       "LEARNING RESOURCES",
@@ -75,7 +85,10 @@ class CourseOverviewCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Expanded(child: Divider(color: themeColor.withValues(alpha: 0.3), thickness: 1.5)),
+              Expanded(
+                  child: Divider(
+                      color: themeColor.withValues(alpha: 0.3),
+                      thickness: 1.5)),
             ],
           ),
           const SizedBox(height: 24),

@@ -64,18 +64,18 @@ class _AchievementsViewState extends State<AchievementsView> {
                     Center(
                       child: Text(
                         "No achievements found",
-                        style:
-                            TextStyle(color: kMuted, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            color: kMuted, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
                 ),
               );
             }
-        
+
             final unlocked = state.where((a) => a.unlocked ?? false).toList();
             final locked = state.where((a) => !(a.unlocked ?? false)).toList();
-        
+
             return LiquidPullToRefresh(
               onRefresh: _refresh,
               color: kPrimary,
@@ -109,8 +109,8 @@ class _AchievementsViewState extends State<AchievementsView> {
                             return Container(
                               width: 130,
                               margin: const EdgeInsets.only(right: 12),
-                              child:
-                                  _AchievementTile(achievement: unlocked[index]),
+                              child: _AchievementTile(
+                                  achievement: unlocked[index]),
                             );
                           },
                         ),

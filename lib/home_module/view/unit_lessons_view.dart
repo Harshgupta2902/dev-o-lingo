@@ -5,7 +5,6 @@ import 'package:lingolearn/auth_module/models/lesson_model.dart';
 import 'package:lingolearn/home_module/models/get_home_language_model.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
 import 'package:lingolearn/utilities/navigation/navigator.dart';
-import 'package:lingolearn/config.dart';
 import 'package:lingolearn/main.dart' hide userStatsController;
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/home_module/widgets/course_overview_card.dart';
@@ -183,28 +182,12 @@ class DuolingoLessonPathView extends StatefulWidget {
 }
 
 class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
-  late final ScrollController _scrollController;
   final Map<int, GlobalKey> _lessonKeys = {};
-  bool _isStartButtonVisible = true;
-  bool _isStartButtonAbove = false;
-  int? _startButtonPathIndex;
-  Color _startButtonUnitColor = unitColors[0];
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
-
     _generateKeys();
-    _findStartButton();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _initScroll();
-        _checkStartButtonVisibility();
-      }
-    });
   }
 
   @override
@@ -212,8 +195,6 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.pathItems != widget.pathItems) {
       _generateKeys();
-      _findStartButton();
-      _checkStartButtonVisibility();
     }
   }
 
@@ -225,146 +206,16 @@ class _DuolingoLessonPathViewState extends State<DuolingoLessonPathView> {
     }
   }
 
-  void _findStartButton() {
-    final startIndex = widget.pathItems.indexWhere(
-        (p) => p.type == 'lesson' && (p.data as Lessons).isCurrent == true);
-    if (startIndex != -1) {
-      final item = widget.pathItems[startIndex];
-      _startButtonPathIndex = item.pathIndex;
-      final unitIndex = item.unitIndex ?? 1;
-      _startButtonUnitColor = unitColors[(unitIndex - 1) % unitColors.length];
-    }
-  }
-
-  bool _hasInitialScrollHappened = false;
-
-  void _initScroll() {
-    if (widget.pathItems.isEmpty || _hasInitialScrollHappened) return;
-
-    final firstLessonIndex =
-        widget.pathItems.indexWhere((p) => p.type == 'lesson');
-    if (firstLessonIndex == -1) return;
-
-    // Prioritize "isCurrent" lesson
-    int targetIndex = widget.pathItems.indexWhere(
-        (p) => p.type == 'lesson' && (p.data as Lessons).isCurrent == true);
-
-    // Fallback to last completed lesson if no current lesson marked
-    if (targetIndex == -1) {
-      targetIndex = widget.pathItems.indexWhere((p) =>
-          p.type == 'lesson' &&
-          widget.lastCompletedId != null &&
-          (p.data as Lessons).id == widget.lastCompletedId);
-    }
-
-    if (targetIndex == -1) targetIndex = firstLessonIndex;
-
-    final targetLesson = widget.pathItems[targetIndex];
-
-    void executeScroll() {
-      final key = _lessonKeys[targetLesson.pathIndex];
-      final ctx = key?.currentContext;
-      if (ctx != null) {
-        Scrollable.ensureVisible(
-          ctx,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOutCubic,
-          alignment: 0.5,
-        );
-        _hasInitialScrollHappened = true;
-      } else {
-        // Retry if context not ready
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted && !_hasInitialScrollHappened) {
-            executeScroll();
-          }
-        });
-      }
-    }
-
-    executeScroll();
-  }
-
-  void _checkStartButtonVisibility() {
-    if (_startButtonPathIndex == null) return;
-    final key = _lessonKeys[_startButtonPathIndex];
-    if (key == null || key.currentContext == null) return;
-    final renderObject = key.currentContext!.findRenderObject();
-    if (renderObject == null) return;
-    if (renderObject is RenderBox) {
-      final box = renderObject;
-      final offset = box.localToGlobal(Offset.zero).dy;
-      final screenHeight = MediaQuery.of(context).size.height;
-      final buttonHeight = box.size.height;
-      final isVisible =
-          (offset + buttonHeight) >= 160 && offset <= (screenHeight - 80);
-      final isAbove = offset < 160;
-      if (_isStartButtonVisible != isVisible ||
-          _isStartButtonAbove != isAbove) {
-        setState(() {
-          _isStartButtonVisible = isVisible;
-          _isStartButtonAbove = isAbove;
-        });
-      }
-    }
-  }
-
-  void _onScroll() {
-    _checkStartButtonVisibility();
-  }
-
-  void _scrollToStartButton() {
-    if (_startButtonPathIndex != null) {
-      final key = _lessonKeys[_startButtonPathIndex];
-      final ctx = key?.currentContext;
-      if (ctx != null) {
-        Scrollable.ensureVisible(
-          ctx,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOutCubic,
-          alignment: 0.5,
-        );
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         CustomScrollView(
-          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
           slivers: _buildSliverLessonPath(),
         ),
-        if (AppConfig.showRecenterButton &&
-            !_isStartButtonVisible &&
-            _startButtonPathIndex != null)
-          Positioned(
-            right: 16,
-            bottom: 30,
-            child: FloatingActionButton(
-              onPressed: _scrollToStartButton,
-              backgroundColor: _startButtonUnitColor,
-              elevation: 4,
-              heroTag: 'start_fab',
-              child: Icon(
-                _isStartButtonAbove
-                    ? Icons.keyboard_arrow_up_rounded
-                    : Icons.keyboard_arrow_down_rounded,
-                color: Colors.white,
-                size: 36,
-              ),
-            ),
-          ),
       ],
     );
   }
