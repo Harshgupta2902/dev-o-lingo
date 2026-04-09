@@ -69,23 +69,79 @@ class _AchievementsViewState extends State<AchievementsView> {
             );
           }
 
+          final unlocked = state.where((a) => a.unlocked ?? false).toList();
+          final locked = state.where((a) => !(a.unlocked ?? false)).toList();
+
           return RefreshIndicator(
             onRefresh: _refresh,
             color: kOnSurface,
-            child: GridView.builder(
+            child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                mainAxisExtent: 175,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (unlocked.isNotEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
+                      child: Text(
+                        "Unlocked",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: kOnSurface,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 185,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: unlocked.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            width: 130,
+                            margin: const EdgeInsets.only(right: 12),
+                            child:
+                                _AchievementTile(achievement: unlocked[index]),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  if (locked.isNotEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
+                      child: Text(
+                        "Locked Achievements",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: kOnSurface,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        mainAxisExtent: 135,
+                      ),
+                      itemCount: locked.length,
+                      itemBuilder: (context, index) {
+                        return _AchievementTile(achievement: locked[index]);
+                      },
+                    ),
+                  ],
+                ],
               ),
-              itemCount: state.length,
-              itemBuilder: (context, index) {
-                final achievement = state[index];
-                return _AchievementTile(achievement: achievement);
-              },
             ),
           );
         },
@@ -268,56 +324,107 @@ class _AchievementsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        mainAxisExtent: 175,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Unlocked Section Skeleton
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: _SkeletonBox(width: 100, height: 20),
+          ),
+          SizedBox(
+            height: 185,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: 4,
+              itemBuilder: (_, __) => Container(
+                width: 130,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: kBorder, width: 2),
+                ),
+                child: const _AchievementSkeletonTile(),
+              ),
+            ),
+          ),
+
+          // Locked Section Skeleton
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 32, 16, 12),
+            child: _SkeletonBox(width: 160, height: 20),
+          ),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              mainAxisExtent: 175,
+            ),
+            itemCount: 6,
+            itemBuilder: (context, index) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: kBorder, width: 2),
+                ),
+                child: const _AchievementSkeletonTile(),
+              );
+            },
+          ),
+        ],
       ),
-      itemCount: 9,
-      itemBuilder: (context, index) {
-        return Container(
-          padding: const EdgeInsets.all(8),
+    );
+  }
+}
+
+class _AchievementSkeletonTile extends StatelessWidget {
+  const _AchievementSkeletonTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: kBorder, width: 2),
+            color: kBeigeBg,
+            borderRadius: BorderRadius.circular(18),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: kBeigeBg,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                width: 70,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: kBeigeBg,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                width: 50,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: kBeigeBg,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ),
+        const SizedBox(height: 10),
+        const _SkeletonBox(width: 70, height: 10),
+        const SizedBox(height: 4),
+        const _SkeletonBox(width: 50, height: 8),
+      ],
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  final double width;
+  final double height;
+  const _SkeletonBox({required this.width, required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: kBeigeBg,
+        borderRadius: BorderRadius.circular(4),
+      ),
     );
   }
 }
