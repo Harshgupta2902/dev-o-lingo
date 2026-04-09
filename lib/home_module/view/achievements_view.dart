@@ -47,132 +47,139 @@ class _AchievementsViewState extends State<AchievementsView> {
         foregroundColor: kOnSurface,
         surfaceTintColor: Colors.transparent,
       ),
-      body: achievementController.obx(
-        (state) {
-          if (state == null || state.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: _refresh,
-              color: kOnSurface,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 100),
-                  Center(
-                    child: Text(
-                      "No achievements found",
-                      style:
-                          TextStyle(color: kMuted, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final unlocked = state.where((a) => a.unlocked ?? false).toList();
-          final locked = state.where((a) => !(a.unlocked ?? false)).toList();
-
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            color: kOnSurface,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (unlocked.isNotEmpty) ...[
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
+      body: Scrollbar(
+        radius: const Radius.circular(8),
+        child: achievementController.obx(
+          (state) {
+            if (state == null || state.isEmpty) {
+              return LiquidPullToRefresh(
+                onRefresh: _refresh,
+                color: kPrimary,
+                backgroundColor: Colors.white,
+                animSpeedFactor: 2.0,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    SizedBox(height: 100),
+                    Center(
                       child: Text(
-                        "Unlocked",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: kOnSurface,
-                          letterSpacing: -0.5,
-                        ),
+                        "No achievements found",
+                        style:
+                            TextStyle(color: kMuted, fontWeight: FontWeight.w600),
                       ),
-                    ),
-                    SizedBox(
-                      height: 185,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: unlocked.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            width: 130,
-                            margin: const EdgeInsets.only(right: 12),
-                            child:
-                                _AchievementTile(achievement: unlocked[index]),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                  if (locked.isNotEmpty) ...[
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
-                      child: Text(
-                        "Locked Achievements",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: kOnSurface,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        mainAxisExtent: 135,
-                      ),
-                      itemCount: locked.length,
-                      itemBuilder: (context, index) {
-                        return _AchievementTile(achievement: locked[index]);
-                      },
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        },
-        onLoading: const _AchievementsSkeleton(),
-        onError: (error) => LiquidPullToRefresh(
-          onRefresh: _refresh,
-          color: kPrimary,
-          backgroundColor: Colors.white,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              const SizedBox(height: 100),
-              Center(
-                child: Column(
-                  children: [
-                    const Icon(Icons.error_outline_rounded,
-                        color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      error ?? "Failed to load achievements",
-                      style: const TextStyle(
-                          color: kMuted, fontWeight: FontWeight.w600),
-                    ),
-                    TextButton(
-                      onPressed: _refresh,
-                      child: const Text("Retry"),
                     ),
                   ],
                 ),
+              );
+            }
+        
+            final unlocked = state.where((a) => a.unlocked ?? false).toList();
+            final locked = state.where((a) => !(a.unlocked ?? false)).toList();
+        
+            return LiquidPullToRefresh(
+              onRefresh: _refresh,
+              color: kPrimary,
+              backgroundColor: Colors.white,
+              animSpeedFactor: 2.0,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (unlocked.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
+                        child: Text(
+                          "Unlocked",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: kOnSurface,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 185,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: unlocked.length,
+                          itemBuilder: (context, index) {
+                            return Container(
+                              width: 130,
+                              margin: const EdgeInsets.only(right: 12),
+                              child:
+                                  _AchievementTile(achievement: unlocked[index]),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    if (locked.isNotEmpty) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
+                        child: Text(
+                          "Locked Achievements",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: kOnSurface,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          mainAxisExtent: 135,
+                        ),
+                        itemCount: locked.length,
+                        itemBuilder: (context, index) {
+                          return _AchievementTile(achievement: locked[index]);
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ],
+            );
+          },
+          onLoading: const _AchievementsSkeleton(),
+          onError: (error) => LiquidPullToRefresh(
+            onRefresh: _refresh,
+            color: kPrimary,
+            backgroundColor: Colors.white,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 100),
+                Center(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.error_outline_rounded,
+                          color: Colors.red, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        error ?? "Failed to load achievements",
+                        style: const TextStyle(
+                            color: kMuted, fontWeight: FontWeight.w600),
+                      ),
+                      TextButton(
+                        onPressed: _refresh,
+                        child: const Text("Retry"),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

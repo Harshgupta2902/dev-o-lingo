@@ -89,9 +89,11 @@ class _FollowsScreenState extends State<FollowsScreen> {
             );
           },
           onLoading: const _FollowsSkeleton(),
-          onEmpty: RefreshIndicator(
+          onEmpty: LiquidPullToRefresh(
             onRefresh: _refresh,
             color: kPrimary,
+            backgroundColor: Colors.white,
+            animSpeedFactor: 2.0,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: const [
@@ -100,9 +102,11 @@ class _FollowsScreenState extends State<FollowsScreen> {
               ],
             ),
           ),
-          onError: (err) => RefreshIndicator(
+          onError: (err) => LiquidPullToRefresh(
             onRefresh: _refresh,
             color: kPrimary,
+            backgroundColor: Colors.white,
+            animSpeedFactor: 2.0,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
