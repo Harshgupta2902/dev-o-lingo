@@ -90,7 +90,7 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
           IconButton(
             onPressed: () => authController.googleSignOut(context),
-            icon: const Icon(Icons.logout_rounded, color: kMuted),
+            icon: Icon(Icons.logout_rounded, color: kOnSurface.withOpacity(0.5)),
           ),
         ],
       ),

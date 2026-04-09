@@ -35,49 +35,84 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: true,
-      child: LiquidPullToRefresh(
-        onRefresh: _refresh,
-        color: kPrimary,
-        backgroundColor: Colors.white,
-        animSpeedFactor: 2.0,
-        child: Column(
-          children: [
-            const CustomHeader(
-                title: "Daily Practise", icon: Icons.event_note_rounded),
-            Expanded(
-              child: dailyPractiseController.obx(
-                (state) {
-                  final data = state?.practices ?? [];
-                  if (data.isEmpty) {
-                    return const Center(
-                        child: Text('No practices scheduled yet.'));
-                  }
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: data.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) => PracticeTile(
-                      key: ValueKey(
-                          '${data[i].practiceId ?? data[i].date}-${data[i].status}'),
-                      item: data[i],
-                      onOpen: _handleOpen,
-                    ),
-                  );
-                },
-                onLoading: const PracticeListShimmer(),
-                onEmpty:
-                    const Center(child: Text('No practices scheduled yet.')),
-                onError: (err) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text('Failed to load: $err'),
+    return Scaffold(
+      backgroundColor: kSurface,
+      body: SafeArea(
+        top: true,
+        child: LiquidPullToRefresh(
+          onRefresh: _refresh,
+          color: kPrimary,
+          backgroundColor: Colors.white,
+          animSpeedFactor: 2.0,
+          child: Column(
+            children: [
+              const CustomHeader(
+                  title: "Daily Practice", icon: Icons.event_note_rounded),
+              Expanded(
+                child: dailyPractiseController.obx(
+                  (state) {
+                    final data = state?.practices ?? [];
+                    if (data.isEmpty) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                          const Center(
+                            child: Text(
+                              'No activities scheduled yet.',
+                              style: TextStyle(
+                                  color: kMuted, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+                      itemCount: data.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 14),
+                      itemBuilder: (context, i) => PracticeTile(
+                        key: ValueKey(
+                            '${data[i].practiceId ?? data[i].date}-${data[i].status}'),
+                        item: data[i],
+                        onOpen: _handleOpen,
+                      ),
+                    );
+                  },
+                  onLoading: const PracticeListShimmer(),
+                  onEmpty: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      const Center(
+                        child: Text(
+                          'No practices scheduled yet.',
+                          style: TextStyle(
+                              color: kMuted, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  onError: (err) => ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Failed to load: $err',
+                            style: const TextStyle(
+                                color: kMuted, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -115,8 +150,7 @@ class _PracticeTileState extends State<PracticeTile>
   Timer? _ticker;
 
   // --- Normalized helpers ---
-  String get _status =>
-      widget.item.status.toString().toLowerCase().trim();
+  String get _status => widget.item.status.toString().toLowerCase().trim();
 
   @override
   void initState() {
@@ -130,9 +164,8 @@ class _PracticeTileState extends State<PracticeTile>
     if (oldWidget.item.date != widget.item.date ||
         oldWidget.item.status != widget.item.status ||
         oldWidget.item.isToday != widget.item.isToday ||
-        oldWidget.item.done != widget.item.done || // NEW
+        oldWidget.item.done != widget.item.done ||
         oldWidget.item.total != widget.item.total) {
-      // NEW
       _computeTargetAndStart();
     }
   }
@@ -146,54 +179,54 @@ class _PracticeTileState extends State<PracticeTile>
   @override
   bool get wantKeepAlive => true;
 
-
   int get _done => widget.item.done;
   int get _total => widget.item.total;
   bool get _isInProgress => (widget.item.isToday == true) && _done < _total;
   String get _uiStatus => _isInProgress ? 'available' : _status;
+
   void _computeTargetAndStart() {
     _ticker?.cancel();
 
     if ((_uiStatus == 'available') && (widget.item.isToday == true)) {
-      _ticker = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
+      _ticker =
+          Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
     } else {
       if (mounted) setState(() {});
     }
   }
 
-
   String _prettyDate(String ymd) {
     try {
       final dt = DateTime.parse('${ymd}T00:00:00.000');
-      return DateFormat('EEE, d MMM').format(dt);
+      return DateFormat('EEEE, d MMMM').format(dt);
     } catch (_) {
       return ymd;
     }
   }
 
-  Color _chipColor(BuildContext context) {
+  Color _chipColor() {
     switch (_status) {
       case 'available':
-        return Colors.blue.shade50;
+        return kCardBlue;
       case 'completed':
-        return Colors.green.shade50;
+        return successBackground;
       case 'missed':
-        return Colors.red.shade50;
+        return errorBackground;
       default:
-        return Colors.grey.shade100;
+        return kBeigeBg;
     }
   }
 
-  Color _chipBorder(BuildContext context) {
+  Color _accentColor() {
     switch (_status) {
       case 'available':
-        return Colors.blue.shade300;
+        return infoMain;
       case 'completed':
-        return Colors.green.shade300;
+        return successMain;
       case 'missed':
-        return Colors.red.shade300;
+        return errorMain;
       default:
-        return Colors.grey.shade400;
+        return kMuted;
     }
   }
 
@@ -204,7 +237,7 @@ class _PracticeTileState extends State<PracticeTile>
       case 'completed':
         return Icons.check_circle_rounded;
       case 'missed':
-        return Icons.cancel_rounded;
+        return Icons.event_busy_rounded;
       default:
         return Icons.lock_rounded;
     }
@@ -215,147 +248,166 @@ class _PracticeTileState extends State<PracticeTile>
     super.build(context);
     final item = widget.item;
     final pct = item.total == 0 ? 0.0 : (item.done / item.total);
-    final chipColor = _chipColor(context);
-    final chipBorder = _chipBorder(context);
+    final backgroundColor = _chipColor();
+    final accentColor = _accentColor();
 
     return GestureDetector(
       onTap: () => widget.onOpen(widget.item),
-      child: Material(
-        color: Colors.transparent,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.grey.shade200),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .05),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: kBorder, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(_leadingIcon(), color: accentColor, size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _prettyDate(item.date),
+                                style: const TextStyle(
+                                  fontFamily: 'serif',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
+                                  color: kOnSurface,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ),
+                            if (item.isToday)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: kAmberAccent.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: kAmberAccent, width: 1),
+                                ),
+                                child: const Text(
+                                  'TODAY',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: kAmberAccent,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: backgroundColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _status.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: accentColor,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            value: pct,
+                            minHeight: 10,
+                            backgroundColor: kBorder.withOpacity(0.4),
+                            color: accentColor,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _buildStatChip(
+                              icon: Icons.task_alt_rounded,
+                              label: '${item.done}/${item.total}',
+                            ),
+                            const SizedBox(width: 12),
+                            _buildStatChip(
+                              icon: Icons.bolt_rounded,
+                              label: '${item.earnedXp} XP',
+                            ),
+                            const SizedBox(width: 12),
+                            _buildStatChip(
+                              icon: Icons.diamond_rounded,
+                              label: '${item.earnedGems}',
+                            ),
+                          ],
+                        ),
+                        if (item.completedAtAgo != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            'Completed ${item.completedAtAgo}',
+                            style: TextStyle(
+                              color: kMuted.withOpacity(0.8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // HEADER
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: chipColor,
-                      child: Icon(_leadingIcon(), color: chipBorder),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                _prettyDate(item.date),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: chipColor,
-                                  border: Border.all(color: chipBorder),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  _status.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: chipBorder,
-                                  ),
-                                ),
-                              ),
-                              if (item.isToday)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange.shade50,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: Colors.orange.shade300),
-                                  ),
-                                  child: Text(
-                                    'TODAY',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.orange.shade800,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-
-                          // progress
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: LinearProgressIndicator(
-                              value: pct,
-                              minHeight: 8,
-                              backgroundColor: Colors.grey.shade200,
-                              color: kPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // stats
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 6,
-                            children: [
-                              Text(
-                                'Done ${item.done}/${item.total}',
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const Text('•', style: TextStyle(fontSize: 12)),
-                              Text('XP ${item.earnedXp}',
-                                  style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                      fontSize: 12)),
-                              Text('Gems ${item.earnedGems}',
-                                  style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                      fontSize: 12)),
-                              if (item.completedAtAgo != null)
-                                Text('Completed ${item.completedAtAgo}',
-                                    style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 12)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatChip({required IconData icon, required String label}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: kMuted),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: kOnSurface.withOpacity(0.7),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -16,12 +16,13 @@ class CustomHeader extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: kPrimary,
-              borderRadius: BorderRadius.circular(8),
+              color: kSecondary.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: kSecondary.withOpacity(0.5), width: 1.5),
             ),
             child: Icon(
               icon,
-              color: Colors.white,
+              color: kOnSurface.withOpacity(0.8),
               size: 18,
             ),
           ),

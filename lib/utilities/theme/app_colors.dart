@@ -6,7 +6,7 @@ const Color kBeigeBg = Color(0xFFFDFBF4);
 const Color kSoftGray = Color(0xFF9CA3AF);
 const Color kDarkSlate = Color(0xFF1F2937);
 const Color kAmberAccent = Color(0xFFF59E0B);
-const Color kSandyBorder = Color(0xFFEFECCF);
+const Color kSandyBorder = Color(0xFFDAD6B0);
 
 // --- Global Theme Tokens ---
 const Color kPrimary = Color(0xFFEFECCF); // Warm Sandy Primary
