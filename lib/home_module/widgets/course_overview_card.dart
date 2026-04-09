@@ -31,24 +31,14 @@ class CourseOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(description);
-
-    if (description.isEmpty && resources.isEmpty)
+    if (description.isEmpty && resources.isEmpty) {
       return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (description.isNotEmpty)
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.6,
-              color: kDarkSlate,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+        if (description.isNotEmpty) _buildDescriptionSection(),
         if (resources.isNotEmpty) ...[
           const SizedBox(height: 24),
           // Divider & Label
@@ -96,6 +86,45 @@ class CourseOverviewCard extends StatelessWidget {
           ...resources.map((res) => _buildResourceItem(res)),
         ],
       ],
+    );
+  }
+
+  Widget _buildDescriptionSection() {
+    final lines = description.split('\n');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: lines.map((line) {
+        final trimmed = line.trim();
+        if (trimmed.isEmpty) return const SizedBox(height: 8);
+
+        final isBullet = trimmed.startsWith('*') || trimmed.startsWith('-');
+        final content = isBullet ? trimmed.substring(1).trim() : trimmed;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isBullet)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8, right: 12),
+                  child: Icon(Icons.circle, size: 6, color: kMuted),
+                ),
+              Expanded(
+                child: Text(
+                  content,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                    color: kDarkSlate,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

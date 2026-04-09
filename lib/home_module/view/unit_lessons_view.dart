@@ -549,7 +549,7 @@ class UnitOverviewCard extends StatelessWidget {
           ));
         }
       } else if (!inResources) {
-        if (description.isNotEmpty) description += " ";
+        if (description.isNotEmpty) description += "\n";
         description += line;
       }
     }
