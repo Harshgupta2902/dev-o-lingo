@@ -12,6 +12,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:lingolearn/home_module/controller/language_controller.dart';
 import 'package:lingolearn/home_module/controller/user_stats_controller.dart';
 import 'package:lingolearn/home_module/controller/app_controller.dart';
+import 'package:lingolearn/home_module/controller/achievement_controller.dart';
 import 'package:lingolearn/utilities/firebase/analytics_service.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/firebase/crashlytics_service.dart';
@@ -175,6 +176,7 @@ void main() async {
   Get.put(LanguageController());
   Get.put(UserStatsController());
   Get.put(AppController());
+  Get.put(AchievementController());
 
   if (getJwtToken() != null && getJwtToken() != "") {
     await languageController.getLanguageData();

@@ -38,4 +38,6 @@ class APIEndPoints {
 
   static const getNotifications = "notifications";
   static const markAllNotificationsRead = "notifications/read-all";
+
+  static const getAchievements = "achievements";
 }

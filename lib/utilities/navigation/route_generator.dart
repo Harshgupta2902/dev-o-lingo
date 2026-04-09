@@ -17,6 +17,7 @@ import 'package:lingolearn/home_module/view/result_view.dart';
 import 'package:lingolearn/home_module/view/unit_lessons_view.dart';
 import 'package:lingolearn/home_module/view/notification_view.dart';
 import 'package:lingolearn/home_module/view/shop/shop_view.dart';
+import 'package:lingolearn/home_module/view/achievements_view.dart';
 import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
@@ -208,6 +209,14 @@ final GoRouter goRouterConfig = GoRouter(
       name: GoPaths.notificationView,
       builder: (context, state) {
         return const NotificationView();
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.achievementsView,
+      name: GoPaths.achievementsView,
+      builder: (context, state) {
+        return const AchievementsView();
       },
     ),
   ],

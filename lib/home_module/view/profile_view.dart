@@ -321,7 +321,8 @@ class _AccountScreenState extends State<AccountScreen> {
               _buildSectionTitle("Achievements",
                   icon: Icons.emoji_events_rounded),
               TextButton(
-                onPressed: () {},
+                onPressed: () =>
+                    MyNavigator.pushNamed(GoPaths.achievementsView),
                 child: const Text("View all",
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),

@@ -196,6 +196,7 @@ class Achievements {
   String? description;
   String? iconUrl;
   String? achievedAt;
+  bool? unlocked;
 
   Achievements({
     this.id,
@@ -203,6 +204,7 @@ class Achievements {
     this.description,
     this.iconUrl,
     this.achievedAt,
+    this.unlocked,
   });
 
   Achievements.fromJson(dynamic json) {
@@ -210,7 +212,8 @@ class Achievements {
     title = json['title'];
     description = json['description'];
     iconUrl = json['icon_url'];
-    achievedAt = json['achieved_at'];
+    achievedAt = json['unlocked_at'] ?? json['achieved_at'];
+    unlocked = json['unlocked'];
   }
 
   Map<String, dynamic> toJson() {
@@ -220,6 +223,7 @@ class Achievements {
     map['description'] = description;
     map['icon_url'] = iconUrl;
     map['achieved_at'] = achievedAt;
+    map['unlocked'] = unlocked;
     return map;
   }
 }

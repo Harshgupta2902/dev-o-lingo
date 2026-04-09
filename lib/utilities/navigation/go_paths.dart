@@ -24,4 +24,5 @@ class GoPaths {
 
   static const String unitLessonsView = '/unitLessonsView';
   static const String notificationView = '/notificationView';
+  static const String achievementsView = '/achievementsView';
 }
