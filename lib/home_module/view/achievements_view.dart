@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lingolearn/home_module/controller/achievement_controller.dart';
 import 'package:lingolearn/home_module/models/user_profile_model.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
 
 class AchievementsView extends StatefulWidget {
@@ -43,7 +44,7 @@ class _AchievementsViewState extends State<AchievementsView> {
         ),
         centerTitle: false,
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: kSurface,
         foregroundColor: kOnSurface,
         surfaceTintColor: Colors.transparent,
       ),
@@ -332,28 +333,31 @@ class _AchievementsSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Unlocked Section Skeleton
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: _SkeletonBox(width: 100, height: 20),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+            child: _skeletonBox(width: 100, height: 22),
           ),
           SizedBox(
             height: 185,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: 4,
               itemBuilder: (_, __) => Container(
                 width: 130,
                 margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: kBorder, width: 2),
+                  border: Border.all(color: kBorder.withOpacity(0.4), width: 2),
                 ),
                 child: const _AchievementSkeletonTile(),
               ),
@@ -361,33 +365,49 @@ class _AchievementsSkeleton extends StatelessWidget {
           ),
 
           // Locked Section Skeleton
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 32, 16, 12),
-            child: _SkeletonBox(width: 160, height: 20),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 32, 16, 12),
+            child: _skeletonBox(width: 160, height: 22),
           ),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              mainAxisExtent: 175,
+              mainAxisExtent: 135,
             ),
-            itemCount: 6,
+            itemCount: 9,
             itemBuilder: (context, index) {
               return Container(
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: kBorder, width: 2),
+                  border: Border.all(color: kBorder.withOpacity(0.4), width: 2),
                 ),
                 child: const _AchievementSkeletonTile(),
               );
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _skeletonBox({double height = 16, double? width, double borderRadius = 6}) {
+    return Shimmer.fromColors(
+      baseColor: kBorder.withOpacity(0.4),
+      highlightColor: kSurface,
+      child: Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
       ),
     );
   }
@@ -401,37 +421,47 @@ class _AchievementSkeletonTile extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: kBeigeBg,
-            borderRadius: BorderRadius.circular(18),
+        Shimmer.fromColors(
+          baseColor: kBorder.withOpacity(0.4),
+          highlightColor: kSurface,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
           ),
         ),
-        const SizedBox(height: 10),
-        const _SkeletonBox(width: 70, height: 10),
-        const SizedBox(height: 4),
-        const _SkeletonBox(width: 50, height: 8),
+        const SizedBox(height: 12),
+        Shimmer.fromColors(
+          baseColor: kBorder.withOpacity(0.4),
+          highlightColor: kSurface,
+          child: Container(
+            width: 70,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Shimmer.fromColors(
+          baseColor: kBorder.withOpacity(0.4),
+          highlightColor: kSurface,
+          child: Container(
+            width: 50,
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
       ],
     );
   }
 }
 
-class _SkeletonBox extends StatelessWidget {
-  final double width;
-  final double height;
-  const _SkeletonBox({required this.width, required this.height});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: kBeigeBg,
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
-}
+// Removed _SkeletonBox as it's replaced by the local helper _skeletonBox with Shimmer
