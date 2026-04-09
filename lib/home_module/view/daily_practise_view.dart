@@ -121,7 +121,7 @@ class _DailyPracticesScreenState extends State<DailyPracticesScreen> {
   void _handleOpen(PracticeItem item) async {
     if (item.practiceId == null) return;
     if (item.status.toLowerCase() == 'locked') return;
-    if (item.status.toLowerCase() == 'completed') return;
+    if (item.status.toLowerCase() == 'missed') return;
 
     final result = await MyNavigator.pushNamedForResult(
       GoPaths.practicesQuestionScreen,
