@@ -11,6 +11,9 @@ class PracticeSessionController extends GetxController
   final Map<int, String> selected = {};
   final Set<int> skipped = {};
   final elapsedMs = 0.obs;
+  final isSubmitting = false.obs;
+  bool _timerRunning = true;
+
   bool get isLast => state != null && (state!.data?.items?.length ?? 0) > 0
       ? current.value == state!.data!.items!.length - 1
       : true;
@@ -52,7 +55,7 @@ class PracticeSessionController extends GetxController
   void _startTicker() async {
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
-      if (isClosed) return false;
+      if (isClosed || !_timerRunning) return false;
       elapsedMs.value += 1000;
       return true;
     });
@@ -86,7 +89,15 @@ class PracticeSessionController extends GetxController
   }
 
   Future<dynamic> submit() async {
-    if (state == null || state!.data == null) throw Exception('No state');
+    if (isSubmitting.value) return null;
+    isSubmitting.value = true;
+    _timerRunning = false;
+
+    if (state == null || state!.data == null) {
+      isSubmitting.value = false;
+      _timerRunning = true;
+      throw Exception('No state');
+    }
 
     final items = state!.data!.items ?? [];
     final practiceId = state!.data!.id;
@@ -117,13 +128,16 @@ class PracticeSessionController extends GetxController
     }
 
     // use your Dio request util (keep consistent with your project)
-    final resp = await postRequest(
-      apiEndPoint: APIEndPoints.submitDailyPractice,
-      postData: payload,
-    );
-    // if your postRequest returns a Dio Response:
-    final data = resp.data is String ? jsonDecode(resp.data) : resp.data;
-    if (data is Map && data['status'] == true) return data;
-    throw Exception('Submit failed: $data');
+    try {
+      final resp = await postRequest(
+        apiEndPoint: APIEndPoints.submitDailyPractice,
+        postData: payload,
+      );
+      final data = resp.data is String ? jsonDecode(resp.data) : resp.data;
+      if (data is Map && data['status'] == true) return data;
+      throw Exception('Submit failed: $data');
+    } finally {
+      isSubmitting.value = false;
+    }
   }
 }
