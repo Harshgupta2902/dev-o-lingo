@@ -101,4 +101,28 @@ class SocialController extends GetxController with StateMixin<FollowsModel> {
       debugPrint("---------- $apiEndPoint getFollowing End ----------");
     }
   }
+
+  Future<dynamic> removeFollower(String id) async {
+    const apiEndPoint = APIEndPoints.removeFollower;
+    debugPrint("---------- $apiEndPoint removeFollower Start ----------");
+    try {
+      final response = await postRequest(
+        apiEndPoint: apiEndPoint,
+        postData: {"targetUserId": id},
+      );
+
+      debugPrint("SocialController => removeFollower > Success  $response");
+
+      final responseData =
+          response.data is String ? jsonDecode(response.data) : response.data;
+
+      return responseData;
+    } catch (error) {
+      debugPrint(
+          "---------- $apiEndPoint removeFollower End With Error ----------");
+      debugPrint("SocialController => removeFollower > Error $error ");
+    } finally {
+      debugPrint("---------- $apiEndPoint removeFollower End ----------");
+    }
+  }
 }

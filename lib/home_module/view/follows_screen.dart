@@ -4,6 +4,8 @@ import 'package:lingolearn/home_module/controller/social_controller.dart';
 import 'package:lingolearn/home_module/models/follows_model.dart';
 import 'package:lingolearn/utilities/theme/app_colors.dart';
 import 'package:lingolearn/utilities/packages/liquid_pull_to_refresh.dart';
+import 'package:lingolearn/utilities/navigation/go_paths.dart';
+import 'package:lingolearn/utilities/navigation/navigator.dart';
 
 enum FollowsType { followers, following }
 
@@ -76,7 +78,11 @@ class _FollowsScreenState extends State<FollowsScreen> {
                 type: widget.type,
                 onAction: (id) async {
                   if (widget.type == FollowsType.followers) {
-                    await socialController.followUser(id.toString());
+                    final res =
+                        await socialController.removeFollower(id.toString());
+                    if (res?['status'] == true) {
+                      _load();
+                    }
                   } else {
                     final res =
                         await socialController.unfollowUser(id.toString());
@@ -139,9 +145,9 @@ class _FollowTile extends StatelessWidget {
     final since = (item.followedAt ?? '').trim();
 
     final isFollowers = type == FollowsType.followers;
-    final actionLabel = isFollowers ? 'Follow' : 'Unfollow';
-    const actionBg = kPrimary;
-    const actionFg = Colors.white;
+    final actionLabel = isFollowers ? 'Remove' : 'Unfollow';
+    final actionBg = isFollowers ? const Color(0xFFFEE2E2) : kPrimary;
+    final actionFg = isFollowers ? const Color(0xFFEF4444) : Colors.white;
 
     return Container(
       decoration: BoxDecoration(
@@ -159,20 +165,36 @@ class _FollowTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
-            backgroundColor: kBorder,
-            child: avatar.isEmpty
-                ? const Icon(Icons.person_rounded, color: kMuted)
-                : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          GestureDetector(
+            onTap: () => MyNavigator.pushNamed(
+              GoPaths.otherUserProfileView,
+              extra: {'userId': (item.userId ?? 0).toInt()},
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(name,
+                CircleAvatar(
+                  radius: 22,
+                  backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+                  backgroundColor: kBorder,
+                  child: avatar.isEmpty
+                      ? const Icon(Icons.person_rounded, color: kMuted)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+              ],
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => MyNavigator.pushNamed(
+                GoPaths.otherUserProfileView,
+                extra: {'userId': (item.userId ?? 0).toInt()},
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -207,7 +229,8 @@ class _FollowTile extends StatelessWidget {
                     ),
                   ),
                 ],
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -223,7 +246,7 @@ class _FollowTile extends StatelessWidget {
               child: Center(
                 child: Text(
                   actionLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: actionFg,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,

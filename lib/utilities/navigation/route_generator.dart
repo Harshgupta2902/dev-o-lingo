@@ -18,6 +18,7 @@ import 'package:lingolearn/home_module/view/unit_lessons_view.dart';
 import 'package:lingolearn/home_module/view/notification_view.dart';
 import 'package:lingolearn/home_module/view/shop/shop_view.dart';
 import 'package:lingolearn/home_module/view/achievements_view.dart';
+import 'package:lingolearn/home_module/view/other_user_profile_screen.dart';
 import 'package:lingolearn/main.dart';
 import 'package:lingolearn/utilities/firebase/core_prefs.dart';
 import 'package:lingolearn/utilities/navigation/go_paths.dart';
@@ -217,6 +218,16 @@ final GoRouter goRouterConfig = GoRouter(
       name: GoPaths.achievementsView,
       builder: (context, state) {
         return const AchievementsView();
+      },
+    ),
+    GoRoute(
+      parentNavigatorKey: rootNavigatorKey,
+      path: GoPaths.otherUserProfileView,
+      name: GoPaths.otherUserProfileView,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>;
+        final userId = extras['userId'] as int;
+        return OtherUserProfileScreen(userId: userId);
       },
     ),
   ],

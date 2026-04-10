@@ -542,24 +542,36 @@ class _UserSuggestCardState extends State<_UserSuggestCard> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundImage:
-                (widget.avatar.isNotEmpty) ? NetworkImage(widget.avatar) : null,
-            backgroundColor: kBeigeBg,
-            child: widget.avatar.isEmpty
-                ? const Icon(Icons.person_rounded, color: kMuted)
-                : null,
+          GestureDetector(
+            onTap: () => MyNavigator.pushNamed(
+              GoPaths.otherUserProfileView,
+              extra: {'userId': int.tryParse(widget.id) ?? 0},
+            ),
+            child: CircleAvatar(
+              radius: 30,
+              backgroundImage:
+                  (widget.avatar.isNotEmpty) ? NetworkImage(widget.avatar) : null,
+              backgroundColor: kBeigeBg,
+              child: widget.avatar.isEmpty
+                  ? const Icon(Icons.person_rounded, color: kMuted)
+                  : null,
+            ),
           ),
           const SizedBox(height: 12),
-          Text(
-            widget.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: kOnSurface,
+          GestureDetector(
+            onTap: () => MyNavigator.pushNamed(
+              GoPaths.otherUserProfileView,
+              extra: {'userId': int.tryParse(widget.id) ?? 0},
+            ),
+            child: Text(
+              widget.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: kOnSurface,
+              ),
             ),
           ),
           const SizedBox(height: 12),
