@@ -40,4 +40,8 @@ class APIEndPoints {
   static const markAllNotificationsRead = "notifications/read-all";
 
   static const getAchievements = "achievements";
+  static const getPublicUserStats = "getPublicUserStats";
+  static const blockUser = "block";
+  static const reportUser = "report";
+  static const removeFollower = "remove-follower";
 }

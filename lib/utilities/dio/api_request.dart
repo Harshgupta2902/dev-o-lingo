@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 
 import 'api_client.dart';
 
-Future<Response> getRequest({required String apiEndPoint}) async {
+Future<Response> getRequest({required String apiEndPoint, Map<String, dynamic>? queryParameters}) async {
   Dio client = NewClient().init();
   debugPrint("🌐 GET → $apiEndPoint [START]");
 
   try {
-    final response = await client.get(apiEndPoint);
+    final response = await client.get(apiEndPoint, queryParameters: queryParameters);
     debugPrint("✅ GET ← $apiEndPoint [END] "
         "Status: ${response.statusCode}");
     return response;
