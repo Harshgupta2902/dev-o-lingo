@@ -20,25 +20,15 @@ dependencies:
   flutter_svg: ^2.0.10+1
   cached_network_image: ^3.4.1
 
-  logger: ^2.4.0
-
-  package_rename: ^1.5.3
-
   package_info_plus: ^4.0.0
-  device_info_plus: ^10.1.2
-
-  in_app_update: ^4.2.0
-
   #Firebase Dependency + notification
   firebase_core: ^2.0.0
   firebase_crashlytics: ^3.2.0
   firebase_analytics: ^10.3.0
   firebase_messaging: ^14.7.10
-  firebase_performance: ^0.9.4+7
   flutter_local_notifications: ^18.0.1
 
   google_sign_in: ^6.2.1
-  cloud_firestore: ^4.17.5
   firebase_auth: ^4.16.0
   url_launcher: ^6.3.2
   shimmer: ^3.0.0

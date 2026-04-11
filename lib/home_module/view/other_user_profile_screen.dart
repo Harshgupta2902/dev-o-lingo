@@ -362,16 +362,6 @@ class _OtherUserProfileScreenState extends State<OtherUserProfileScreen> {
     );
   }
 
-  // ── Dialogs ──
-
-  void _handleMenuAction(String action) {
-    if (action == 'report') {
-      _showReportDialog();
-    } else if (action == 'block') {
-      _showBlockDialog();
-    }
-  }
-
   void _showReportDialog() {
     final reasonCtrl = TextEditingController();
 
