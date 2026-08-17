@@ -120,7 +120,7 @@ class AuthController extends GetxController
       setUuid(modal.data.user.uid, modal.data.user.email);
 
       messageScaffold(
-        content: "Login Successful ${modal.data.user.name}",
+        content: "Welcome Back, ${modal.data.user.name}",
         messageScaffoldType: MessageScaffoldType.success,
       );
 
@@ -134,7 +134,7 @@ class AuthController extends GetxController
 
       return modal.data.user.id;
     } catch (error) {
-      change(null, status: RxStatus.error()); 
+      change(null, status: RxStatus.error());
     } finally {
       debugPrint("---------- fetchUserData End ----------");
     }
@@ -177,10 +177,6 @@ class AuthController extends GetxController
       setLogin(false);
       clearPrefs();
       debugPrint("AuthController => Signed out from Google");
-      messageScaffold(
-        content: "User Logged Out",
-        messageScaffoldType: MessageScaffoldType.success,
-      );
       MyNavigator.popUntilAndPushNamed(GoPaths.login);
     } catch (e) {
       debugPrint("AuthController => Error during Google sign-out: $e");

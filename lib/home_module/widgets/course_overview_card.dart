@@ -76,9 +76,11 @@ class CourseOverviewCard extends StatelessWidget {
                 ),
               ),
               Expanded(
-                  child: Divider(
-                      color: themeColor.withValues(alpha: 0.3),
-                      thickness: 1.5)),
+                child: Divider(
+                  color: themeColor.withValues(alpha: 0.3),
+                  thickness: 1.5,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -156,9 +158,8 @@ class CourseOverviewCard extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
+      child: GestureDetector(
         onTap: () => _openLink(res.url),
-        borderRadius: BorderRadius.circular(8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

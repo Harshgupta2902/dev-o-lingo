@@ -92,6 +92,7 @@ class SecondaryHeader extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
+          splashColor: Colors.transparent,
           onTap: onBackTap ?? () => MyNavigator.pop(),
           borderRadius: BorderRadius.circular(100),
           child: const Padding(

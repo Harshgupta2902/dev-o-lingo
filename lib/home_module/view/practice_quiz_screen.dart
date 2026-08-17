@@ -420,6 +420,7 @@ class _OptionTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
+        splashColor: Colors.transparent,
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Container(

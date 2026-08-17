@@ -359,11 +359,7 @@ class TimelineLessonItem extends StatelessWidget {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: isCurrent
-                            ? kDarkSlate
-                            : (isCompleted
-                                ? kDarkSlate
-                                : kDarkSlate.withValues(alpha: 0.1)),
+                        color: kDarkSlate,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: isCurrent ? unitColor : Colors.transparent,
@@ -385,9 +381,7 @@ class TimelineLessonItem extends StatelessWidget {
                             : (isCurrent
                                 ? Icons.play_arrow_rounded
                                 : Icons.lock_outline_rounded),
-                        color: isCompleted || isCurrent
-                            ? Colors.white
-                            : kDarkSlate.withValues(alpha: 0.4),
+                        color: Colors.white,
                         size: 24,
                       ),
                     ),
@@ -399,6 +393,7 @@ class TimelineLessonItem extends StatelessWidget {
             // Content Card
             Expanded(
               child: InkWell(
+                splashColor: Colors.transparent,
                 onTap: () => _handleNavigation(context, lesson.id.toString()),
                 borderRadius: BorderRadius.circular(16),
                 child: Column(

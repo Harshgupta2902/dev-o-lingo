@@ -310,6 +310,7 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
+          splashColor: Colors.transparent,
           onTap: () async {
             if (await _onWillPop()) {
               // Navigation handled in _onWillPop
@@ -475,6 +476,7 @@ class _QuestionCard extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: InkWell(
+                splashColor: Colors.transparent,
                 onTap: submitted ? null : () => onSelect(opt),
                 borderRadius: BorderRadius.circular(16),
                 child: AnimatedContainer(
