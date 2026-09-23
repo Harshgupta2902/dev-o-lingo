@@ -33,3 +33,6 @@
 -keep class com.twilio.video.** { *; }
 -keep class com.twilio.common.** { *; }
 -keepattributes InnerClasses
+
+# Play Core / Flutter Deferred Components
+-dontwarn com.google.android.play.core.**
